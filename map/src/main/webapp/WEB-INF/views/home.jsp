@@ -4,7 +4,7 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>지도111aa3</title>
+<title>지도112a3</title>
 <script type="text/javascript"
 	src="https://openapi.map.naver.com/openapi/v3/maps.js?clientId=nVEUh5PrMsL3BXJq_8Pl&submodules=geocoder"></script>
 <script
@@ -17,87 +17,135 @@
 			center : new naver.maps.LatLng(37.451001, 126.656370),
 			zoom : 12
 		});
-
-		var flag = true;
+		
 		var i = 0;
-		var markerList = [];
-		var pathList = [];
-		var nodeList = {};
-		var graph = new Array();
-		var something = {};
-		var vertexAmount = 0; //정점의 총 갯수
-		var map;
-
-		var pl = new naver.maps.Polyline({
-			map : map,
-			path : [],
-			strokeColor : '#5347AA',
-			strokeWeight : 4
-		});
-		pathList.push(pl);
-		path = pl.getPath();
-		path.push({
-			y : 37.451805,
-			_lat : 37.451805,
-			x : 126.656621,
-			_lng : 126.656621
-		});
-		path.push({
-			y : 37.4499395,
-			_lat : 37.4499395,
-			x : 126.6579308,
-			_lng : 126.6579308
-		});
-		console.log(pathList);
+		var markers = [];
+		var polylines = [];
+		var nodes = {};			//format : {"0":{"y":37.4515427,"_lat":37.4515427,"x":126.6564996,"_lng":126.6564996},}
+		var graph = [];			//format : [[0,1,33700],[1,2,9236]]
+		var selectableNode = [];//출발지나 목적지가 될 수 있는 노드
+		var vertexAmount = 0; 	//정점의 총 갯수
+		
+		var flag = true;		//polyline 생성에 쓰인다.
+		var prevX = 0;		
+		var prevY = 0;
+		var path;
+		var pl;
 
 		//클릭하면 마커 생상
-		var prevX = 0;
-		var prevY = 0;
 		naver.maps.Event.addListener(map, 'click', function(e) {
-			nodeList[i.toString()] = e.coord;
+			nodes[i.toString()] = e.coord;
 			var marker = new naver.maps.Marker({
 				position : e.coord,
 				map : map,
+				title : i,
 				name : i++
 			});
 			vertexAmount++;
-			markerList.push(marker);
-
+			markers.push(marker);
+			
 			//두 마커를 클릭하면 라인이 그려진다.
-
 			naver.maps.Event.addListener(marker, 'click', function(e) {
 				if (flag) {
-					var pl = new naver.maps.Polyline({
+					pl = new naver.maps.Polyline({
 						map : map,
 						path : [],
 						strokeColor : '#5347AA',
 						strokeWeight : 4
 					});
 					path = pl.getPath();
-					pathList.push(pl);
-
-					prevNode = e.overlay.name;
-					var x = e.overlay.position.x;
-					var y = e.overlay.position.y;
-					prevX = Math.floor((x - Math.floor(x)) * 100000);
-					prevY = Math.floor((y - Math.floor(y)) * 100000);
+					polylines.push(pl);
 					path.push(e.overlay.getPosition());
+
+					//그래프 생성 1
+					prevNode = e.overlay.name;
+					prevX = e.overlay.position.x;
+					prevY = e.overlay.position.y;
 				} else {
 					path.push(e.overlay.getPosition());
-					var x = e.overlay.position.x;
-					var y = e.overlay.position.y;
-					x = Math.floor((x - Math.floor(x)) * 100000);
-					y = Math.floor((y - Math.floor(y)) * 100000);
-					var distance = 0;
-					distance = Math.pow(prevX - x, 2) + Math.pow(prevY - y, 2);
+					
+					//피타고라스
+					var distance = Math.pow(prevX*100000 - e.overlay.position.x*100000, 2) + Math.pow(prevY*100000 - e.overlay.position.y*100000, 2);
+					distance = Math.sqrt(distance);
+					distance = Math.floor(distance);
+					
+					//그래프 생성2
 					graph.push([ prevNode, e.overlay.name, distance ]);
 				}
 				flag = !flag;
 			});
 
-			//마커를 더블클릭하면 마커를 바꾼다.
+			//마커를 우클릭 -> 도착지 or 출발지로 지정할 수 있다.
+			naver.maps.Event.addListener(marker, 'rightclick', function(e) {
+				var icon = {
+			            url: './resources/j.png',
+			            size: new naver.maps.Size(24, 37),
+			            anchor: new naver.maps.Point(12, 37),
+			            origin: new naver.maps.Point(0, 0)
+			        }
+				e.overlay.setIcon(icon);
+				selectableNode.push(e.overlay.name);
+			});
+			
+			//우클릭 -> 마커의 제거
 			naver.maps.Event.addListener(marker, 'dblclick', function(e) {
-				e.overlay.setIcon("./resources/i.png");
+				var deleteTarget = e.overlay.name;
+				var index = 0;
+				console.log(markers);
+				while(true){
+					if(markers[i]['name']===deleteTarget){
+						markers[i].setMap(null);
+						markers.splice(index,1);
+						index--;
+					}
+					index++;
+					if(index === markers.length){
+						break;
+					}
+				}
+				
+				for (var i = 0, ii = polylines.length; i < ii; i++) {
+					polylines[i].setMap(null);
+				}
+				polylines = [];
+				
+				var deleteTarget = e.overlay.name;
+				delete nodes[deleteTarget];
+				
+				var index = 0;
+				while(true){
+					if(graph[index][0] === deleteTarget || graph[index][1] === deleteTarget){
+						graph.splice(index,1);
+						index--;
+					}
+					
+					index++;
+					if(index === graph.length){
+						break;
+					}
+				}
+				
+				$.each(nodes, function(key, value) {
+					var marker = new naver.maps.Marker({
+						position : value,
+						map : map,
+						title : key,
+						name : key
+					});
+				});
+				
+				for(var i = 0, ii = graph.length; i < ii; i++){
+					var pl = new naver.maps.Polyline({
+						map : map,
+						path : [],
+						strokeColor : '#5347AA',
+						strokeWeight : 4
+					});
+					var path = pl.getPath();
+					path.push(nodes[graph[i][0]]);
+					path.push(nodes[graph[i][1]]);
+					polylines.push(pl);
+				}
 			});
 
 		});
@@ -116,22 +164,25 @@
 							if (keyCode === ESC) {
 								keyboardEvent.preventDefault();
 
-								for (var i = 0, ii = markerList.length; i < ii; i++) {
-									markerList[i].setMap(null);
+								for (var i = 0, ii = markers.length; i < ii; i++) {
+									markers[i].setMap(null);
 								}
-								for (var i = 0, ii = pathList.length; i < ii; i++) {
-									pathList[i].setMap(null);
+								for (var i = 0, ii = polylines.length; i < ii; i++) {
+									polylines[i].setMap(null);
 								}
-								markerList = [];
-								pathList = [];
+								markers = [];
+								polylines = [];
 							}
 						});
 
-		var node = document.getElementById("node");
 		var btn = document.getElementById("printNode");
 		btn.addEventListener("click", function() {
-			console.log(JSON.stringify(nodeList));
-			console.log(JSON.stringify(graph));
+			console.log("nodes : ")
+			console.log(nodes);
+			console.log("selectableNode : ")
+			console.log(selectableNode);
+			console.log("graph : ")
+			console.log(graph);
 		});
 
 		var button = document.getElementById("createNode");
@@ -145,7 +196,6 @@
 					map : map,
 					name : key
 				});
-
 			});
 
 			var graph = JSON.parse(prompt());
@@ -156,73 +206,48 @@
 					strokeColor : '#5347AA',
 					strokeWeight : 4
 				});
-				pathList.push(pl);
+				polylines.push(pl);
 				path = pl.getPath();
 				path.push(p[item[0]]);
 				path.push(p[item[1]]);
 			});
 		})
-
-		var ajaxButton = document.getElementById("ajax");
-		ajaxButton.addEventListener("click", function() {
-			console.log(vertexAmount);
-			console.log(JSON.stringify(graph));
+	
+		var bestLine = new naver.maps.Polyline();
+		var findPath = document.getElementById("findPath");
+		findPath.addEventListener("click", function() {
 			$.ajax({
 				url : "/map/dijkstra",
 				type : "post",
-				data : "json=" + JSON.stringify(graph) + "&vertexAmount="
-						+ vertexAmount,
+				data : "json=" + JSON.stringify(graph) + 
+					   "&nodeAmount=" + String(Object.keys(nodes).length) +
+					   "&startingPoint=" + $("#startingPoint").val() +
+					   "&destinationPoint=" + $("#destinationPoint").val(),
 				success : function(result) {
-					map = JSON.parse(result);
-					console.log(result);
-					console.log(map);
-					for (var i = 0, ii = markerList.length; i < ii; i++) {
-						markerList[i].setMap(null);
+					var parsedResult = JSON.parse(result);
+					bestLine.setMap(null);
+					bestLine = new naver.maps.Polyline({
+						map : map,
+						path : [],
+						strokeColor : '#AA0000',
+						strokeWeight : 4
+					});
+					var bestPath = bestLine.getPath();
+					for (var i = 0; i < parsedResult.length; i++) {
+						bestPath.push(nodes[parsedResult[i]]);
 					}
-					for (var i = 0, ii = pathList.length; i < ii; i++) {
-						pathList[i].setMap(null);
-					}
-					markerList = [];
-					pathList = [];
+					
 				}
+			}); 
+		});
+		
+		var endOfSetting = document.getElementById("endOfSetting");
+		endOfSetting.addEventListener("click", function() {
+			$("#selectableList").text("list : ");
+			$.each(selectableNode, function(index, item) {
+				$("#selectableList").append(item + ", ");
 			});
 		});
-
-		var two = document.getElementById("2");
-		two.addEventListener("click", function() {
-			var pl = new naver.maps.Polyline({
-				map : map,
-				path : [],
-				strokeColor : '#5347AA',
-				strokeWeight : 4
-			});
-			for (var i = 0; i < (map[2].length) - 1; i++) {
-				path = pl.getPath();
-				path.push(nodeList[map[2][i]]);
-				path.push(nodeList[map[2][i+1]]);
-				console.log(map[2][i]);
-				console.log(map[2][i+1])
-			}
-		});
-
-		var tt = document.getElementById("tt");
-		tt.addEventListener("click", function() {
-			var pl = new naver.maps.Polyline({
-				map : map,
-				path : [],
-				strokeColor : '#5347AA',
-				strokeWeight : 4
-			});
-			pathList.push(pl);
-			path = pl.getPath();
-			path.push(nodeList[0]);
-			path.push(nodeList[1]);
-			console.log("tt");
-			console.log(nodeList[0]);
-			console.log(nodeList[1]);
-
-		});
-
 	};
 </script>
 <body id="body">
@@ -231,9 +256,12 @@
 
 </body>
 <button id="printNode">printNode</button>
-<div id="node"></div>
 <button id="createNode">create Node</button>
-<button id="ajax">ajax</button>
-<button id="2">2</button>
-<button id="tt">tt</button>
+<button id="endOfSetting">endOfSetting</button>
+<div id="selectableList"></div>
+<div>
+출발지 : <input id="startingPoint" type="text">
+도착지 : <input id="destinationPoint" type="text">
+<button id="findPath">findPath</button>
+</div>
 </html>

@@ -31,14 +31,17 @@ public class HomeController {
 	}
 
 	@RequestMapping(value = "/dijkstra", method = RequestMethod.POST)
-	public ResponseEntity<String> dijkstra(String json, String vertexAmount)
+	public ResponseEntity<String> dijkstra(String json, String nodeAmount, String startingPoint, String destinationPoint)
 			throws JsonParseException, JsonMappingException, IOException {
 		System.out.println(json);
 		ObjectMapper mapper = new ObjectMapper();
 		List<Integer[]> list = mapper.readValue(json, new TypeReference<List<Integer[]>>() {
 		});
-		int startingPoint = 0;
-		int vertex = Integer.parseInt(vertexAmount);
+		
+		
+		int startingNode = Integer.parseInt(startingPoint);		//시작점
+		int endingNode = Integer.parseInt(destinationPoint);	//도착점
+		int vertex = Integer.parseInt(nodeAmount);				//노드의 갯수
 
 		int[] dist = new int[vertex];
 		Arrays.fill(dist, Integer.MAX_VALUE);
@@ -58,10 +61,10 @@ public class HomeController {
 		for (int i = 0; i < vertex; i++) {
 			path[i] = new ArrayList<>();
 		}
-		path[startingPoint].add(startingPoint);
+		path[startingNode].add(startingNode);
 
 		PriorityQueue<Node> pq = new PriorityQueue<>();
-		pq.offer(new Node(startingPoint, 0));
+		pq.offer(new Node(startingNode, 0));
 		// dijkstra
 		while (!pq.isEmpty()) {
 			Node n = pq.poll();
@@ -88,7 +91,7 @@ public class HomeController {
 		}
 
 
-		return new ResponseEntity<String>(mapper.writeValueAsString(path), HttpStatus.OK);
+		return new ResponseEntity<String>(mapper.writeValueAsString(path[endingNode]), HttpStatus.OK);
 	}
 
 	static class Node implements Comparable<Node> {
