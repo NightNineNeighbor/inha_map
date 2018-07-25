@@ -196,8 +196,7 @@
 			}
 			polylines = [];
 			
-			var jsonNodes = prompt("node");
-			nodes = JSON.parse(jsonNodes);
+			nodes = JSON.parse($("#nodesInfo").val());
 			nextMarkerName = -1;
 			$.each(nodes, function(key, value) {
 				var maerker = new naver.maps.Marker({
@@ -215,7 +214,7 @@
 			nextMarkerName++;
 			console.log("Iiiiiii" + nextMarkerName);
 
-			graph = JSON.parse(prompt("graph"));
+			graph = JSON.parse($("#graphInfo").val());
 			$.each(graph, function(index, item) {
 				var pl = new naver.maps.Polyline({
 					map : map,
@@ -274,8 +273,10 @@
 </body>
 <button id="saveNode">saveNode</button>
 <div id="printInfo"></div>
+nodesInfo : <input id="nodesInfo" type="text">
+graphInfo : <input id="graphInfo" type="text">
 <button id="loadNode">loadNode</button>
-<button id="endOfSetting">endOfSetting</button>
+<br><button id="endOfSetting">endOfSetting</button>
 <div id="selectableList"></div>
 <div>
 출발지 : <input id="startingPoint" type="text">
