@@ -18,12 +18,12 @@
 			zoom : 12
 		});
 		
-		var i = 0;
-		var markers = [];
+		var nextMarkerName = 0;
+		var markers = {};
 		var polylines = [];
 		var nodes = {};			//format : {"0":{"y":37.4515427,"_lat":37.4515427,"x":126.6564996,"_lng":126.6564996},}
 		var graph = [];			//format : [[0,1,33700],[1,2,9236]]
-		var selectableNode = [];//출발지나 목적지가 될 수 있는 노드
+		var selectableNode = {};//출발지나 목적지가 될 수 있는 노드
 		var vertexAmount = 0; 	//정점의 총 갯수
 		
 		var flag = true;		//polyline 생성에 쓰인다.
@@ -34,15 +34,17 @@
 
 		//클릭하면 마커 생상
 		naver.maps.Event.addListener(map, 'click', function(e) {
-			nodes[i.toString()] = e.coord;
+			nodes[nextMarkerName] = e.coord;
 			var marker = new naver.maps.Marker({
 				position : e.coord,
 				map : map,
-				title : i,
-				name : i++
+				title : nextMarkerName,
+				name : nextMarkerName
 			});
 			vertexAmount++;
-			markers.push(marker);
+			console.log(marker);
+			markers[nextMarkerName] = marker;
+			nextMarkerName++;
 			
 			//두 마커를 클릭하면 라인이 그려진다.
 			naver.maps.Event.addListener(marker, 'click', function(e) {
@@ -84,38 +86,27 @@
 			            origin: new naver.maps.Point(0, 0)
 			        }
 				e.overlay.setIcon(icon);
-				selectableNode.push(e.overlay.name);
+				selectableNode[e.overlay.name] = prompt();
 			});
 			
-			//우클릭 -> 마커의 제거
+			//더블클릭 -> 마커의 제거
 			naver.maps.Event.addListener(marker, 'dblclick', function(e) {
 				var deleteTarget = e.overlay.name;
-				var index = 0;
-				console.log(markers);
-				while(true){
-					if(markers[i]['name']===deleteTarget){
-						markers[i].setMap(null);
-						markers.splice(index,1);
-						index--;
-					}
-					index++;
-					if(index === markers.length){
-						break;
-					}
-				}
 				
-				for (var i = 0, ii = polylines.length; i < ii; i++) {
-					polylines[i].setMap(null);
-				}
-				polylines = [];
+				markers[deleteTarget].setMap(null);	//마커 삭제
+				delete markers[deleteTarget];
 				
-				var deleteTarget = e.overlay.name;
-				delete nodes[deleteTarget];
 				
-				var index = 0;
-				while(true){
+				
+				delete nodes[deleteTarget]; //node 삭제
+				
+				var index = 0;							//해당 graph 삭제
+				while(true && graph.length!==0){
 					if(graph[index][0] === deleteTarget || graph[index][1] === deleteTarget){
-						graph.splice(index,1);
+						console.log("index : " + index)
+						console.log(graph);
+						console.log(graph.splice(index,1));
+						console.log(graph);
 						index--;
 					}
 					
@@ -125,16 +116,13 @@
 					}
 				}
 				
-				$.each(nodes, function(key, value) {
-					var marker = new naver.maps.Marker({
-						position : value,
-						map : map,
-						title : key,
-						name : key
-					});
-				});
+				for (var i = 0, ii = polylines.length; i < ii; i++) {	//polyline 모두 삭제
+					polylines[i].setMap(null);
+				}
+				polylines = [];
 				
-				for(var i = 0, ii = graph.length; i < ii; i++){
+				console.log(graph);
+				for(var i = 0, ii = graph.length; i < ii; i++){		//graph 를 기준으로 polyline 다시 생성
 					var pl = new naver.maps.Polyline({
 						map : map,
 						path : [],
@@ -142,9 +130,14 @@
 						strokeWeight : 4
 					});
 					var path = pl.getPath();
+					console.log("a i : " + i);
+					console.log(graph[i]);
+					console.log(nodes[graph[i][0]]);
 					path.push(nodes[graph[i][0]]);
+					console.log(nodes[graph[i][1]]);
 					path.push(nodes[graph[i][1]]);
 					polylines.push(pl);
+					console.log("b");
 				}
 			});
 
@@ -175,30 +168,54 @@
 							}
 						});
 
-		var btn = document.getElementById("printNode");
-		btn.addEventListener("click", function() {
+		var saveNode = document.getElementById("saveNode");
+		saveNode.addEventListener("click", function() {
 			console.log("nodes : ")
 			console.log(nodes);
 			console.log("selectableNode : ")
 			console.log(selectableNode);
 			console.log("graph : ")
 			console.log(graph);
+			$("#printInfo").text("");
+			$("#printInfo").append("node </br>");
+			$("#printInfo").append(JSON.stringify(nodes));
+			$("#printInfo").append("</br>graph </br>");
+			$("#printInfo").append(JSON.stringify(graph))
+			$("#printInfo").append("</br>selectableNode </br>");
+			$("#printInfo").append(JSON.stringify(selectableNode))
 		});
 
-		var button = document.getElementById("createNode");
-		button.addEventListener("click", function() {
-			var node = prompt();
-			var p = JSON.parse(node);
-			$.each(p, function(key, value) {
-				console.log(key + " " + value);
-				new naver.maps.Marker({
+		var loadNode = document.getElementById("loadNode");
+		loadNode.addEventListener("click", function() {
+			$.each(markers, function(key,value){
+				value.setMap(null);
+			});
+			markers = {};
+			for (var i = 0, ii = polylines.length; i < ii; i++) {	//polyline 모두 삭제
+				polylines[i].setMap(null);
+			}
+			polylines = [];
+			
+			var jsonNodes = prompt("node");
+			nodes = JSON.parse(jsonNodes);
+			nextMarkerName = -1;
+			$.each(nodes, function(key, value) {
+				var maerker = new naver.maps.Marker({
 					position : value,
 					map : map,
 					name : key
 				});
+				markers[key] = value;
+				
+				nextMarkerName = Math.max(nextMarkerName,key);
+				console.log(key);
+				console.log("key type : " + typeof(key));
+				console.log(nextMarkerName);
 			});
+			nextMarkerName++;
+			console.log("Iiiiiii" + nextMarkerName);
 
-			var graph = JSON.parse(prompt());
+			graph = JSON.parse(prompt("graph"));
 			$.each(graph, function(index, item) {
 				var pl = new naver.maps.Polyline({
 					map : map,
@@ -208,8 +225,8 @@
 				});
 				polylines.push(pl);
 				path = pl.getPath();
-				path.push(p[item[0]]);
-				path.push(p[item[1]]);
+				path.push(nodes[item[0]]);
+				path.push(nodes[item[1]]);
 			});
 		})
 	
@@ -244,8 +261,8 @@
 		var endOfSetting = document.getElementById("endOfSetting");
 		endOfSetting.addEventListener("click", function() {
 			$("#selectableList").text("list : ");
-			$.each(selectableNode, function(index, item) {
-				$("#selectableList").append(item + ", ");
+			$.each(selectableNode, function(key, value) {
+				$("#selectableList").append("( " +key + ", " + value + " )");
 			});
 		});
 	};
@@ -255,8 +272,9 @@
 		style="border: 1px solid black; height: 500px; width: 500px;"></div>
 
 </body>
-<button id="printNode">printNode</button>
-<button id="createNode">create Node</button>
+<button id="saveNode">saveNode</button>
+<div id="printInfo"></div>
+<button id="loadNode">loadNode</button>
 <button id="endOfSetting">endOfSetting</button>
 <div id="selectableList"></div>
 <div>
