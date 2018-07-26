@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
@@ -19,6 +20,7 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nnn.map.info.MapInfo;
 
 /**
  * Handles requests for the application home page.
@@ -27,7 +29,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class HomeController {
 	@RequestMapping(value = "/", method = RequestMethod.GET)
 	public String home(Locale locale, Model model) {
+		model.addAttribute("nodes", MapInfo.nodes);
+		model.addAttribute("graph", MapInfo.graph);
+		model.addAttribute("selectable", MapInfo.selectable);
 		return "home";
+	}
+	
+	@GetMapping("/building")
+	public String building() {
+		return "building";
 	}
 
 	@RequestMapping(value = "/dijkstra", method = RequestMethod.POST)
