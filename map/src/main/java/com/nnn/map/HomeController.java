@@ -1,5 +1,6 @@
 package com.nnn.map;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -8,13 +9,19 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.PriorityQueue;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -127,5 +134,28 @@ public class HomeController {
 	@RequestMapping(value = "/dijkstra", method = RequestMethod.GET)
 	public ResponseEntity<String> testdijkstra() {
 		return new ResponseEntity<String>("didijkstra", HttpStatus.OK);
+	}
+	
+	@GetMapping("/fileUpload")
+	public String fileUpload() {
+		return "fileUpload";
+	}
+	
+	@PostMapping("/fileUpload")
+	public String fileUpload(MultipartFile myfile, RedirectAttributes ra) throws IOException {
+		System.out.println(System.getProperty("user.dir"));
+		final String rootDirectory = "c:/Users/IN/Desktop/inha_map/map/src/main/webapp/";
+		final String webDirectory = "resources/";
+		final String fileName = myfile.getOriginalFilename();
+		File file = new File(rootDirectory + webDirectory, fileName);
+		FileCopyUtils.copy(myfile.getBytes(), file);
+		
+		ra.addFlashAttribute("uploadedFile", webDirectory+fileName);
+		return "redirect:/mapUpload";//TODO
+	}
+	
+	@GetMapping("/mapUpload")
+	public String makeMap() {
+		return "mapUpload";
 	}
 }
