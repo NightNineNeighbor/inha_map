@@ -42,6 +42,11 @@ public class HomeController {
 	@Autowired
 	ObjectMapper mapper;
 	
+	@GetMapping("/map")
+	public String map(){
+		return "map";
+	}
+	
 	@RequestMapping(value = "/", method = RequestMethod.GET)
 	public String home(Locale locale, Model model) {
 		model.addAttribute("nodes", StaticMapInfo.nodes);

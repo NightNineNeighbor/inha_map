@@ -9,6 +9,8 @@
         <property name="defaultEncoding" value="UTF-8" />
     </bean>	
     
+    <bean id="pwdEncoder" class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder" />
+    
     <bean id="mapper" class="com.fasterxml.jackson.databind.ObjectMapper" />
     
     <bean id="dataSource" class="org.apache.commons.dbcp2.BasicDataSource">

@@ -298,3 +298,52 @@ function makeBuilding() {
 		}
 	});
 }
+
+function makeCustomMap(controlObject, fileName, targetDiv) {
+	var imgPath = './resources/' + fileName;
+
+	var tileSize = new naver.maps.Size(500, 500),
+	
+		proj = {
+			fromCoordToPoint : function(coord) {
+				var pcoord = coord.clone();
+
+				if (coord instanceof naver.maps.LatLng) {
+					pcoord = new naver.maps.Point(coord.lng(), coord.lat());
+				}
+
+				return pcoord.div(tileSize.width, tileSize.height);
+			},
+
+			fromPointToCoord : function(point) {
+				return point.clone().mul(tileSize.width, tileSize.height);
+			}
+		},
+		
+		getMapType = function(floor) {
+			var commonOptions = {
+				name : '',
+				minZoom : 0,
+				maxZoom : 0,
+				tileSize : tileSize,
+				projection : proj,
+				repeatX : false,
+				tileSet : '',
+			},
+			mapTypeOptions = $.extend({}, commonOptions, {
+				name : floor,
+				tileSet : imgPath,
+			});
+
+		return new naver.maps.ImageMapType(mapTypeOptions);
+		};
+
+	controlObject = new naver.maps.Map(targetDiv, {
+		center : new naver.maps.Point(250, 250),
+		zoom : 0,
+		background : '#FFFFFF',
+		mapTypes : new naver.maps.MapTypeRegistry({
+			'default' : getMapType()}),
+		mapTypeId : 'default'
+	});
+}

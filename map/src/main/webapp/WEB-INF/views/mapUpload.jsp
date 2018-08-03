@@ -10,16 +10,17 @@
 	src="https://openapi.map.naver.com/openapi/v3/maps.js?clientId=nVEUh5PrMsL3BXJq_8Pl&submodules=geocoder"></script>
 <script
 	src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-<script src="./resources/script/myfunction.html"></script>
+<script src="./resources/script/myfunction.js" type="text/javascript"></script>
 </head>
 <script>
 	window.onload = function() {
 		sayHello();
 		
-		var map;
-		makeCustomMap();
 		
+		var map;
+		makeCustomMap(map, "hak_1.jpg", "map1");
 		var metaMap = getMetaMap(map);
+		
 		
 		naver.maps.Event.addListener(map, 'click', function(e) {
 			makeMarker(metaMap.nextMarkerName++, e.coord, metaMap);
@@ -74,81 +75,12 @@
 			});
 		}
 		
-		
-		//빌딩 그리기
-		function makeCustomMap() {
-			var HOME_PATH = './resources';
-
-			var tileSize = new naver.maps.Size(500, 500),
-			
-				proj = {
-					fromCoordToPoint : function(coord) {
-						var pcoord = coord.clone();
-
-						if (coord instanceof naver.maps.LatLng) {
-							pcoord = new naver.maps.Point(coord.lng(), coord.lat());
-						}
-
-						return pcoord.div(tileSize.width, tileSize.height);
-					},
-
-					fromPointToCoord : function(point) {
-						return point.clone().mul(tileSize.width, tileSize.height);
-					}
-				},
-				
-				getMapType = function(floor) {
-					var commonOptions = {
-						name : '',
-						minZoom : 0,
-						maxZoom : 0,
-						tileSize : tileSize,
-						projection : proj,
-						repeatX : false,
-						tileSet : '',
-						vendor : '\xa9 NAVER Corp.',
-						uid : ''
-					},
-					mapTypeOptions = $.extend({}, commonOptions, {
-						name : floor,
-						tileSet : HOME_PATH	+ '/hak_1.jpg',
-						uid : 'naver:greenfactory:' + floor
-					});
-					console.log("mapTypeOptions")
-					console.log(mapTypeOptions);
-
-				return new naver.maps.ImageMapType(mapTypeOptions);
-				};
-
-			map = new naver.maps.Map('map', {
-				center : new naver.maps.Point(128, 128),
-				zoom : 2,
-				background : '#FFFFFF',
-				mapTypes : new naver.maps.MapTypeRegistry({
-					'+1F' : getMapType('1F'),
-					'+2F' : getMapType('2F'),
-					'+4F' : getMapType('4F'),
-					'+5F' : getMapType('5F'),
-				}),
-				mapTypeId : '+1F',
-				mapTypeControl : true,
-				mapTypeControlOptions : {
-					mapTypeIds : [ '+1F', '+2F', '+4F', '+5F' ],
-					position : naver.maps.Position.BOTTOM_CENTER,
-					style : naver.maps.MapTypeControlStyle.BUTTON
-				},
-				zoomControl : true,
-				zoomControlOptions : {
-					position : naver.maps.Position.TOP_RIGHT
-				}
-			});
-		}
 	};
 </script>
 <body id="body">
 	<h1>${uploadedFile }</h1>
 
-	<div id="map" style="border: 1px solid black; height: 500px; width: 500px;"></div>
+	<div id="map1" style="border: 1px solid black; height: 500px; width: 500px;"></div>
 	<div>
 	save ID : <input type="text" id="saveId"><button id="save">save</button>
 	</div>

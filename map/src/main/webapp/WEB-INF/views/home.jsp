@@ -10,7 +10,7 @@
 	src="https://openapi.map.naver.com/openapi/v3/maps.js?clientId=nVEUh5PrMsL3BXJq_8Pl&submodules=geocoder"></script>
 <script
 	src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-<script src="./resources/script/myfunction.html"></script>
+<script src="./resources/script/myfunction.js" type="text/javascript"></script>
 </head>
 <script>
 	window.onload = function() {
