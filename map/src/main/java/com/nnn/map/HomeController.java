@@ -4,13 +4,13 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Optional;
+import java.util.Map;
 import java.util.PriorityQueue;
 
-import javax.servlet.http.HttpServletRequest;
-
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -24,21 +24,29 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nnn.map.info.MapInfo;
+import com.nnn.map.dao.MapInfoDao;
+import com.nnn.map.info.StaticMapInfo;
+import com.nnn.map.vo.MapInfo;
 
 /**
  * Handles requests for the application home page.
  */
 @Controller
 public class HomeController {
+	@Autowired
+	MapInfoDao dao;
+	@Autowired
+	ObjectMapper mapper;
+	
 	@RequestMapping(value = "/", method = RequestMethod.GET)
 	public String home(Locale locale, Model model) {
-		model.addAttribute("nodes", MapInfo.nodes);
-		model.addAttribute("graph", MapInfo.graph);
-		model.addAttribute("selectable", MapInfo.selectable);
+		model.addAttribute("nodes", StaticMapInfo.nodes);
+		model.addAttribute("graph", StaticMapInfo.graph);
+		model.addAttribute("selectable", StaticMapInfo.selectable);
 		return "home";
 	}
 	
@@ -54,7 +62,6 @@ public class HomeController {
 		ObjectMapper mapper = new ObjectMapper();
 		List<Integer[]> list = mapper.readValue(json, new TypeReference<List<Integer[]>>() {
 		});
-		
 		
 		int startingNode = Integer.parseInt(startingPoint);		//시작점
 		int endingNode = Integer.parseInt(destinationPoint);	//도착점
@@ -128,7 +135,6 @@ public class HomeController {
 			else
 				return 0;
 		}
-
 	}
 
 	@RequestMapping(value = "/dijkstra", method = RequestMethod.GET)
@@ -157,5 +163,45 @@ public class HomeController {
 	@GetMapping("/mapUpload")
 	public String makeMap() {
 		return "mapUpload";
+	}
+	
+	@GetMapping("/test")
+	public String test(Model model) {
+		String testResult = mapInfoTestStory();
+		model.addAttribute("testResult", testResult);
+		return "test";
+	}
+	
+	private String mapInfoTestStory() {
+		MapInfo mapInfo = dao.readGraphAndNodes("테스트 지도");
+		mapInfo.setGraph("test message");
+		dao.updateGraphAndNodes(mapInfo);
+		mapInfo = dao.readGraphAndNodes("테스트 지도");
+		if(mapInfo.getGraph().equals("test message")) {
+			return "OK";
+		}else {
+			return "fail";
+		}
+	}
+	
+	@PostMapping("/saveGraphAndNodes")
+	public ResponseEntity<String> saveGraphAndNodes(String id, String nodes, String graph, String selectableNodes){
+		MapInfo mapInfo = new MapInfo(id, graph, nodes, selectableNodes);
+		int isInsertClear = dao.insertGraphAndNodes(mapInfo);
+		String inserStatus = "";
+		if(isInsertClear == 1 ) {
+			inserStatus = "OK";
+		}else {
+			inserStatus = "FAIL";
+		}
+		return new ResponseEntity<String>( inserStatus , HttpStatus.OK);
+	}
+	
+	@RequestMapping(value = "/loadGraphAndNodes",method=RequestMethod.POST, produces="text/plan;charset=UTF-8")
+	public ResponseEntity<String> loadGraphAndNodes(String id) throws JsonProcessingException{
+		MapInfo mapInfo = dao.readGraphAndNodes(id);
+		System.out.println(mapInfo);		//DEBUG
+		System.out.println(mapper.writeValueAsString(mapInfo));	//DEBUG
+		return new ResponseEntity<String>( mapper.writeValueAsString(mapInfo) , HttpStatus.OK);
 	}
 }

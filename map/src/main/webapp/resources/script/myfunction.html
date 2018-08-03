@@ -2,20 +2,39 @@ function sayHello(){
 	console.log("hello world!!");
 }
 
-function printInfo(m){
+function getMetaMap(map){
+	var Object = {};
+	Object["map"] = map;
+	Object["nextMarkerName"] = 0;
+	Object["nodes"] = {};			//format : {"0":{"y":37.4515427,"_lat":37.4515427,"x":126.6564996,"_lng":126.6564996},}
+	Object["graph"] = [];			//format : [[0,1,33700],[1,2,9236]]
+	Object["markers"] = {};
+	Object["polylines"] = [];
+	Object["selectableNode"] = {};
+	Object["bestLine"] = new naver.maps.Polyline();
+	Object["flag"] = true;
+	Object["prevNode"] = 0;
+	Object["prevX"] = 0;
+	Object["prevY"] = 0;
+	Object["path"] = {};
+	Object["pl"] = {};
+	return Object
+}
+
+function printInfo(targetName, m){
 	console.log("nodes : ")
 	console.log(m.nodes);
 	console.log("graph : ")
 	console.log(m.graph);
 	console.log("selectableNode : ")
 	console.log(m.selectableNode);
-	$("#printInfo").text("");
-	$("#printInfo").append("node </br>");
-	$("#printInfo").append(JSON.stringify(m.nodes));
-	$("#printInfo").append("</br>graph </br>");
-	$("#printInfo").append(JSON.stringify(m.graph))
-	$("#printInfo").append("</br>selectableNode </br>");
-	$("#printInfo").append(JSON.stringify(m.selectableNode))
+	$("#" + targetName).text("");
+	$("#" + targetName).append("node </br>");
+	$("#" + targetName).append(JSON.stringify(m.nodes));
+	$("#" + targetName).append("</br>graph </br>");
+	$("#" + targetName).append(JSON.stringify(m.graph))
+	$("#" + targetName).append("</br>selectableNode </br>");
+	$("#" + targetName).append(JSON.stringify(m.selectableNode))
 }
 
 function ajaxFindPath(startingPoint, destinationPoint, m){
@@ -66,7 +85,6 @@ function toggleGraphNode(param, m) {
 		m.polylines[i].setMap(param);
 	}
 }
-
 
 function makeMarker(name, position, m) { //마커 생성
 	m.nodes[name] = position;
@@ -139,7 +157,6 @@ function makeMarker(name, position, m) { //마커 생성
 		while (true && length !== 0) {	//TODO
 			if (m.graph[index][0] == deleteTarget || m.graph[index][1] == deleteTarget) {
 				m.graph.splice(index, 1);
-				console.log(m.graph);
 				index--;
 				length--;
 			}
@@ -163,10 +180,6 @@ function makeMarker(name, position, m) { //마커 생성
 				strokeWeight : 4
 			});
 			var path = pl.getPath();
-			//console.log("graph["+i+"][0] : " + m.graph[i][0]);
-			//console.log("graph["+i+"][1] : " + m.graph[i][1]);
-			//console.log("node[" + m.graph[i][0] + "] : " + m.nodes[m.graph[i][0]]);
-			//console.log("node[" + m.graph[i][1] + "] : " + m.nodes[m.graph[i][1]]);
 			
 			path.push(m.nodes[m.graph[i][0]]);
 			path.push(m.nodes[m.graph[i][1]]);
@@ -192,6 +205,17 @@ function loadNode(nodesInfo, graphInfo, selectableInfo, m) {
 		m.nextMarkerName = Math.max(m.nextMarkerName, key);
 	});
 	m.nextMarkerName++;
+	
+	m.selectableNode = JSON.parse(selectableInfo) 
+	$.each(m.selectableNode, function(key, values) {
+		var icon = {
+			url : './resources/j.png',
+			size : new naver.maps.Size(24, 37),
+			anchor : new naver.maps.Point(12, 37),
+			origin : new naver.maps.Point(0, 0)
+		}
+		m.markers[key].setIcon(icon);
+	})
 
 	m.graph = JSON.parse(graphInfo);
 	$.each(m.graph, function(index, item) {
@@ -203,19 +227,11 @@ function loadNode(nodesInfo, graphInfo, selectableInfo, m) {
 		});
 		m.polylines.push(pl);
 		path = pl.getPath();
-		path.push(m.nodes[item[0]]);
-		path.push(m.nodes[item[1]]);
+		//path.push(m.nodes[item[0]]);
+		//path.push(m.nodes[item[1]]);
+		path.push(new naver.maps.Point(m.nodes[item[0]].x , m.nodes[item[0]].y) );
+		path.push(new naver.maps.Point(m.nodes[item[1]].x , m.nodes[item[1]].y) );
 	});
-	m.selectableNode = JSON.parse(selectableInfo) 
-	$.each(m.selectableNode, function(key, values) {
-		var icon = {
-			url : './resources/j.png',
-			size : new naver.maps.Size(24, 37),
-			anchor : new naver.maps.Point(12, 37),
-			origin : new naver.maps.Point(0, 0)
-		}
-		m.markers[key].setIcon(icon);
-	})
 }
 
 //빌딩 그리기

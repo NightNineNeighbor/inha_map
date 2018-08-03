@@ -19,24 +19,6 @@
 		var building;
 		makeBuilding();
 		
-		function getMetaMap(map){
-			var Object = {};
-			Object["map"] = map;
-			Object["nextMarkerName"] = 0;
-			Object["nodes"] = {};			//format : {"0":{"y":37.4515427,"_lat":37.4515427,"x":126.6564996,"_lng":126.6564996},}
-			Object["graph"] = [];			//format : [[0,1,33700],[1,2,9236]]
-			Object["markers"] = {};
-			Object["polylines"] = [];
-			Object["selectableNode"] = {};
-			Object["bestLine"] = new naver.maps.Polyline();
-			Object["flag"] = true;
-			Object["prevNode"] = 0;
-			Object["prevX"] = 0;
-			Object["prevY"] = 0;
-			Object["path"] = {};
-			Object["pl"] = {};
-			return Object
-		}
 		var map = new naver.maps.Map('map', {
 			center : new naver.maps.LatLng(37.451001, 126.656370),
 			zoom : 12
@@ -51,7 +33,7 @@
 		});
 
 		document.getElementById("saveNode").addEventListener("click",function() {
-			printInfo(metaMap);
+			printInfo("printInfo", metaMap);
 		});
 
 		document.getElementById("loadNode").addEventListener("click",function() {

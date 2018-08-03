@@ -14,126 +14,67 @@
 </head>
 <script>
 	window.onload = function() {
+		sayHello();
+		
 		var map;
 		makeCustomMap();
 		
-		var nextMarkerName = 0;
-		var markers = {};
-		var polylines = [];
-		var nodes = {}; //format : {"0":{"y":37.4515427,"_lat":37.4515427,"x":126.6564996,"_lng":126.6564996},}
-		var graph = []; //format : [[0,1,33700],[1,2,9236]]
-		var selectableNode = {};//출발지나 목적지가 될 수 있는 노드
+		var metaMap = getMetaMap(map);
 		
 		naver.maps.Event.addListener(map, 'click', function(e) {
-			makeMarker(nextMarkerName, e.coord);
-			nextMarkerName++;
+			makeMarker(metaMap.nextMarkerName++, e.coord, metaMap);
 		});
-
-		function makeMarker(name, position) { //마커 생성
-			console.log(position);
-			console.log(name);
-			nodes[name] = position;
-			var marker = new naver.maps.Marker({
-				position : position,
-				map : map,
-				title : name,
-				name : name
+		
+		document.getElementById("saveNode").addEventListener("click",function() {
+			printInfo("printInfo", metaMap);
+		});
+		
+		document.getElementById("loadNode").addEventListener("click",function() {
+			loadNode($("#nodesInfo").val(), $("#graphInfo").val(), $("#selectableInfo").val(), metaMap)
+		})
+		
+		document.getElementById("save").addEventListener("click",function() {
+			console.log("save");
+			ajaxSaveGraphAndNodes($("#saveId").val(), metaMap)
+		});
+		
+		function ajaxSaveGraphAndNodes(id, m){
+			$.ajax({
+				url : "/map/saveGraphAndNodes",
+				type : "post",
+				data : "id=" + id + 
+						"&nodes=" + JSON.stringify(m.nodes) + 
+						"&graph=" + JSON.stringify(m.graph) +
+						"&selectableNodes=" + JSON.stringify(m.selectableNode),
+				success : function(result) {
+				}
+				
 			});
-			console.log(marker);
-			markers[name] = marker;
-
-			//두 마커를 클릭하면 라인이 그려진다.
-			naver.maps.Event.addListener(marker, 'click', function(e) {
-				if (flag) {
-					pl = new naver.maps.Polyline({
-						map : map,
-						path : [],
-						strokeColor : '#5347AA',
-						strokeWeight : 4
-					});
-					path = pl.getPath();
-					polylines.push(pl);
-					path.push(e.overlay.getPosition());
-
-					//그래프 생성 1
-					prevNode = e.overlay.name;
-					prevX = e.overlay.position.x;
-					prevY = e.overlay.position.y;
-				} else {
-					path.push(e.overlay.getPosition());
-
-					//피타고라스
-					var distance = Math.pow(prevX * 100000
-							- e.overlay.position.x * 100000, 2)
-							+ Math.pow(prevY * 100000 - e.overlay.position.y
-									* 100000, 2);
-					distance = Math.sqrt(distance);
-					distance = Math.floor(distance);
-
-					//그래프 생성2
-					graph.push([ prevNode, e.overlay.name, distance ]);
-				}
-				flag = !flag;
-			});
-
-			//마커를 우클릭 -> 도착지 or 출발지로 지정할 수 있다.
-			naver.maps.Event.addListener(marker, 'rightclick', function(e) {
-				var icon = {
-					url : './resources/j.png',
-					size : new naver.maps.Size(24, 37),
-					anchor : new naver.maps.Point(12, 37),
-					origin : new naver.maps.Point(0, 0)
-				}
-				e.overlay.setIcon(icon);
-				selectableNode[e.overlay.name] = prompt();
-			});
-
-			//더블클릭 -> 마커의 제거
-			naver.maps.Event.addListener(marker, 'dblclick', function(e) {
-				var deleteTarget = e.overlay.name;
-
-				markers[deleteTarget].setMap(null); //마커 삭제
-				delete markers[deleteTarget];
-
-				delete nodes[deleteTarget]; //node 삭제
-
-				delete selectableNode[deleteTarget];
-
-				var index = 0; //해당 graph 삭제
-				while (true && graph.length !== 0) {
-					if (graph[index][0] === deleteTarget
-							|| graph[index][1] === deleteTarget) {
-						graph.splice(index, 1);
-						index--;
-					}
-
-					index++;
-					if (index === graph.length) {
-						break;
-					}
-				}
-
-				for (var i = 0, ii = polylines.length; i < ii; i++) { //polyline 모두 삭제
-					polylines[i].setMap(null);
-				}
-				polylines = [];
-
-				for (var i = 0, ii = graph.length; i < ii; i++) { //graph 를 기준으로 polyline 다시 생성
-					var pl = new naver.maps.Polyline({
-						map : map,
-						path : [],
-						strokeColor : '#5347AA',
-						strokeWeight : 4
-					});
-					var path = pl.getPath();
-					path.push(nodes[graph[i][0]]);
-					path.push(nodes[graph[i][1]]);
-					polylines.push(pl);
-				}
-			});
-
 		}
-
+		
+		document.getElementById("load").addEventListener("click",function() {
+			printInfo("one", metaMap);
+			ajaxLoadGraphAndNodes($("#loadId").val(), metaMap)
+		});
+		
+		function ajaxLoadGraphAndNodes(id, m){
+			$.ajax({
+				url : "/map/loadGraphAndNodes",
+				type : "post",
+				data : "id=" + id,
+				success : function(result) {
+					var info = JSON.parse(result);
+					console.log(info);
+					console.log(info.graph);
+					console.log(JSON.parse(info.graph));
+					loadNode(info.nodes, info.graph, info.selectableNodes, m);
+					printInfo("two", metaMap);
+				}
+				
+			});
+		}
+		
+		
 		//빌딩 그리기
 		function makeCustomMap() {
 			var HOME_PATH = './resources';
@@ -207,7 +148,25 @@
 <body id="body">
 	<h1>${uploadedFile }</h1>
 
-	<div id="map"
-		style="border: 1px solid black; height: 500px; width: 500px;"></div>
+	<div id="map" style="border: 1px solid black; height: 500px; width: 500px;"></div>
+	<div>
+	save ID : <input type="text" id="saveId"><button id="save">save</button>
+	</div>
+	<div>
+	load ID : <input type="text" id="loadId"><button id="load">load</button>
+	</div>
+	<div id = "one"></div>
+	<div id = "two"></div>
+	nodesInfo :
+	<input id="nodesInfo" type="text">
+	<br> graphInfo :
+	<input id="graphInfo" type="text">
+	<br> selectableInfo :
+	<input id="selectableInfo" type="text">
+	<br>
+	<button id="loadNode">loadNode</button>
+	<button id="saveNode">saveNode</button>
+	<div id="printInfo"></div>
+	
 </body>
 </html>
