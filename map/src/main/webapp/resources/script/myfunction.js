@@ -62,6 +62,31 @@ function ajaxFindPath(startingPoint, destinationPoint, m){
 	});
 }
 
+function ajaxFullFindPath(startingPoint, buildingName, destinationPoint, m){
+	$.ajax({
+		url : "/map/findpath",
+		type : "post",
+		data : 	"startingPoint=" + startingPoint +
+				"&buildingName=" + buildingName +
+				"&destinationPoint=" + destinationPoint,
+		success : function(result) {
+			var parsedResult = JSON.parse(result);
+			console.log(parsedResult);
+			m.bestLine.setMap(null);
+			m.bestLine = new naver.maps.Polyline({
+				map : m.map,
+				path : [],
+				strokeColor : '#AA0000',
+				strokeWeight : 4
+			});
+			var bestPath = m.bestLine.getPath();
+			for (var i = 0; i < parsedResult['ground'].length; i++) {
+				bestPath.push(m.nodes[parsedResult['ground'][i]]);
+			}
+		}
+	});
+}
+
 function showSelectableList( targetName , m ){
 	$("#" + targetName).text("");
 	$.each(m.selectableNode, function(key, value) {
@@ -235,7 +260,7 @@ function loadNode(nodesInfo, graphInfo, selectableInfo, m) {
 }
 
 //빌딩 그리기
-function makeBuilding() {
+function makeBuilding(controlObject,targetDiv) {
 	var HOME_PATH = './resources';
 	var tileSize = new naver.maps.Size(256, 256),
 	proj = {
@@ -275,7 +300,7 @@ function makeBuilding() {
 		return new naver.maps.ImageMapType(mapTypeOptions);
 	};
 
-	building = new naver.maps.Map('building', {
+	controlObject = new naver.maps.Map(targetDiv, {
 		center : new naver.maps.Point(128, 128),
 		zoom : 2,
 		background : '#FFFFFF',
@@ -300,6 +325,7 @@ function makeBuilding() {
 }
 
 function makeCustomMap(controlObject, fileName, targetDiv) {
+	console.log("makeCustmoMap1");
 	var imgPath = './resources/' + fileName;
 
 	var tileSize = new naver.maps.Size(500, 500),
@@ -338,7 +364,7 @@ function makeCustomMap(controlObject, fileName, targetDiv) {
 		return new naver.maps.ImageMapType(mapTypeOptions);
 		};
 
-	controlObject = new naver.maps.Map(targetDiv, {
+	return new naver.maps.Map(targetDiv, {
 		center : new naver.maps.Point(250, 250),
 		zoom : 0,
 		background : '#FFFFFF',
@@ -347,3 +373,34 @@ function makeCustomMap(controlObject, fileName, targetDiv) {
 		mapTypeId : 'default'
 	});
 }
+
+function ajaxSaveGraphAndNodes(id, m){
+	$.ajax({
+		url : "/map/saveGraphAndNodes",
+		type : "post",
+		data : "id=" + id + 
+				"&nodes=" + JSON.stringify(m.nodes) + 
+				"&graph=" + JSON.stringify(m.graph) +
+				"&selectableNodes=" + JSON.stringify(m.selectableNode),
+		success : function(result) {
+		}
+		
+	});
+}
+
+function ajaxLoadGraphAndNodes(id, m){
+	$.ajax({
+		url : "/map/loadGraphAndNodes",
+		type : "post",
+		data : "id=" + id,
+		success : function(result) {
+			var info = JSON.parse(result);
+			loadNode(info.nodes, info.graph, info.selectableNodes, m);
+		}
+		
+	});
+}
+
+
+
+

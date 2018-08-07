@@ -5,22 +5,20 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>지도112a3</title>
+<title>지도1233</title>
 <script type="text/javascript"
 	src="https://openapi.map.naver.com/openapi/v3/maps.js?clientId=nVEUh5PrMsL3BXJq_8Pl&submodules=geocoder"></script>
 <script
 	src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-<script src="./resources/script/myfunction.js" type="text/javascript"></script>
+<script src="http://127.0.0.1:8081/map/resources/script/myfunction.js" type="text/javascript"></script>
 </head>
 <script>
 	window.onload = function() {
 		sayHello();
 		
-		
 		var map;
 		makeCustomMap(map, "hak_1.jpg", "map1");
 		var metaMap = getMetaMap(map);
-		
 		
 		naver.maps.Event.addListener(map, 'click', function(e) {
 			makeMarker(metaMap.nextMarkerName++, e.coord, metaMap);
@@ -39,41 +37,11 @@
 			ajaxSaveGraphAndNodes($("#saveId").val(), metaMap)
 		});
 		
-		function ajaxSaveGraphAndNodes(id, m){
-			$.ajax({
-				url : "/map/saveGraphAndNodes",
-				type : "post",
-				data : "id=" + id + 
-						"&nodes=" + JSON.stringify(m.nodes) + 
-						"&graph=" + JSON.stringify(m.graph) +
-						"&selectableNodes=" + JSON.stringify(m.selectableNode),
-				success : function(result) {
-				}
-				
-			});
-		}
 		
 		document.getElementById("load").addEventListener("click",function() {
 			printInfo("one", metaMap);
 			ajaxLoadGraphAndNodes($("#loadId").val(), metaMap)
 		});
-		
-		function ajaxLoadGraphAndNodes(id, m){
-			$.ajax({
-				url : "/map/loadGraphAndNodes",
-				type : "post",
-				data : "id=" + id,
-				success : function(result) {
-					var info = JSON.parse(result);
-					console.log(info);
-					console.log(info.graph);
-					console.log(JSON.parse(info.graph));
-					loadNode(info.nodes, info.graph, info.selectableNodes, m);
-					printInfo("two", metaMap);
-				}
-				
-			});
-		}
 		
 	};
 </script>

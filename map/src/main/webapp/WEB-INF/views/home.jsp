@@ -16,9 +16,6 @@
 	window.onload = function() {
 		sayHello();
 		
-		var building;
-		makeBuilding();
-		
 		var map = new naver.maps.Map('map', {
 			center : new naver.maps.LatLng(37.451001, 126.656370),
 			zoom : 12
@@ -54,6 +51,27 @@
 		document.getElementById("mapToggle").addEventListener("click",function() {
 			mapToggle(metaMap)
 		});
+		
+		document.getElementById("save").addEventListener("click",function() {
+			console.log("save");
+			ajaxSaveGraphAndNodes($("#saveId").val(), metaMap)
+		});
+		
+		function ajaxSaveGraphAndNodes(id, m){
+			$.ajax({
+				url : "/map/saveGraphAndNodes",
+				type : "post",
+				data : "id=" + id + 
+						"&nodes=" + JSON.stringify(m.nodes) + 
+						"&graph=" + JSON.stringify(m.graph) +
+						"&selectableNodes=" + JSON.stringify(m.selectableNode),
+				success : function(result) {
+				}
+				
+			});
+		}
+		
+		
 
 		function inite() {
 			loadNode('${nodes}', '${graph}', '${selectable}', metaMap);
@@ -89,6 +107,12 @@
 		
 	</div>
 	<button id="mapToggle">mapToggle</button>
+
+	<div>
+	save ID : <input type="text" id="saveId"><button id="save">save</button>
+	</div>
+
+
 
 	<div id="building"
 		style="border: 1px solid black; height: 500px; width: 500px;"></div>

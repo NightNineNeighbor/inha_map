@@ -29,6 +29,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nnn.map.dao.MapInfoDao;
+import com.nnn.map.info.Node;
 import com.nnn.map.info.StaticMapInfo;
 import com.nnn.map.vo.MapInfo;
 
@@ -41,11 +42,6 @@ public class HomeController {
 	MapInfoDao dao;
 	@Autowired
 	ObjectMapper mapper;
-	
-	@GetMapping("/map")
-	public String map(){
-		return "map";
-	}
 	
 	@RequestMapping(value = "/", method = RequestMethod.GET)
 	public String home(Locale locale, Model model) {
@@ -123,24 +119,7 @@ public class HomeController {
 		return new ResponseEntity<String>(mapper.writeValueAsString(path[endingNode]), HttpStatus.OK);
 	}
 
-	static class Node implements Comparable<Node> {
-		public int vertex;
-		public int dist;
-
-		public Node(int vertex, int dist) {
-			this.vertex = vertex;
-			this.dist = dist;
-		}
-
-		public int compareTo(Node o) {
-			if (this.dist > o.dist)
-				return 1;
-			else if (this.dist < o.dist)
-				return -1;
-			else
-				return 0;
-		}
-	}
+	
 
 	@RequestMapping(value = "/dijkstra", method = RequestMethod.GET)
 	public ResponseEntity<String> testdijkstra() {

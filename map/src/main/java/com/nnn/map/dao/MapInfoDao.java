@@ -26,6 +26,17 @@ public class MapInfoDao {
 	public int deleteGraphAndNodes(String id) {
 		return tpl.delete("mapInfoMapper.deleteGraphAndNodes", id);
 	}
+
+	public String getEnterance(String string) {
+		// TODO Auto-generated method stub
+		return "[7,8]";
+		
+	}
+
+	public int getFloor(String destinationPoint) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
 	
 	
 }

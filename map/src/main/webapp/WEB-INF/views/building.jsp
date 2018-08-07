@@ -9,6 +9,7 @@
 	src="https://openapi.map.naver.com/openapi/v3/maps.js?clientId=nVEUh5PrMsL3BXJq_8Pl&submodules=geocoder"></script>
 <script
 	src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="http://127.0.0.1:8081/map/resources/script/myfunction.js" type="text/javascript"></script>
 </head>
 <script>
 	window.onload = function() {
@@ -49,9 +50,10 @@
 		            });
 
 		        return new naver.maps.ImageMapType(mapTypeOptions);
-		    };
+		    }; 
 
-
+		
+		    
 		var building = new naver.maps.Map('map', {
 		    center: new naver.maps.Point(128, 128),
 		    zoom: 2,
@@ -75,8 +77,12 @@
 		    }
 		});
 		
-		naver.maps.Event.addListener(building, 'click', function(e) {
-			alert(e.coord);
+		
+		var metaMap = getMetaMap(building);
+		console.log(metaMap.map);
+		
+		naver.maps.Event.addListener(metaMap.map, 'click', function(e) {
+			makeMarker(metaMap.nextMarkerName++, e.coord, metaMap);
 		});
 	}
 </script>
