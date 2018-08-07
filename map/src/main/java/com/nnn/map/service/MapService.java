@@ -27,7 +27,7 @@ public class MapService {
 		int starting = Integer.parseInt(startingPoint);
 		MapInfo groundMapInfo = dao.readGraphAndNodes("ground");
 		List<Integer[]> rawGraph = mapper.readValue(groundMapInfo.getGraph(), new TypeReference<List<Integer[]>>() {});
-		Integer[] destinations = mapper.readValue(dao.getEnterance(buildingName), new TypeReference<Integer[]>(){});
+		Integer[] destinations = mapper.readValue(dao.getEnterances(buildingName), new TypeReference<Integer[]>(){});
 		Dijkstra dijkstra = new Dijkstra(starting, rawGraph, destinations);
 		return dijkstra.getShortestPath();
 	}

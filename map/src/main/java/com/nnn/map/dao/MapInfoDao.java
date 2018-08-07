@@ -27,7 +27,7 @@ public class MapInfoDao {
 		return tpl.delete("mapInfoMapper.deleteGraphAndNodes", id);
 	}
 
-	public String getEnterance(String string) {
+	public String getEnterances(String string) {
 		// TODO Auto-generated method stub
 		return "[7,8]";
 		
