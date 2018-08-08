@@ -55,7 +55,7 @@ public class HomeController {
 	public String building() {
 		return "building";
 	}
-
+	
 	@RequestMapping(value = "/dijkstra", method = RequestMethod.POST)
 	public ResponseEntity<String> dijkstra(String json, String nodeAmount, String startingPoint, String destinationPoint)
 			throws JsonParseException, JsonMappingException, IOException {
@@ -93,14 +93,14 @@ public class HomeController {
 		// dijkstra
 		while (!pq.isEmpty()) {
 			Node n = pq.poll();
-			int here = n.vertex;
-			if (n.dist > dist[here])
+			int here = n.node;
+			if (n.distance > dist[here])
 				continue;
 
 			for (int i = 0; i < graph[here].size(); i++) {
 				Node node = graph[here].get(i);
-				int destination = node.vertex;
-				int destDist = node.dist;
+				int destination = node.node;
+				int destDist = node.distance;
 
 				if (dist[destination] > dist[here] + destDist) {
 					dist[destination] = dist[here] + destDist;

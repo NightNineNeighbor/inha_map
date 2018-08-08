@@ -62,7 +62,7 @@ function ajaxFindPath(startingPoint, destinationPoint, m){
 	});
 }
 
-function ajaxFullFindPath(startingPoint, buildingName, destinationPoint, m){
+function ajaxFullFindPath(startingPoint, buildingName, destinationPoint, m1, m2, m3){
 	$.ajax({
 		url : "/map/findpath",
 		type : "post",
@@ -72,16 +72,52 @@ function ajaxFullFindPath(startingPoint, buildingName, destinationPoint, m){
 		success : function(result) {
 			var parsedResult = JSON.parse(result);
 			console.log(parsedResult);
-			m.bestLine.setMap(null);
-			m.bestLine = new naver.maps.Polyline({
-				map : m.map,
+			
+			m1.nodes = JSON.parse(parsedResult['ground_Nodes']);
+			var ground_Paths = parsedResult['ground_Paths'];
+			m1.bestLine.setMap(null);
+			m1.bestLine = new naver.maps.Polyline({
+				map : m1.map,
 				path : [],
 				strokeColor : '#AA0000',
 				strokeWeight : 4
 			});
-			var bestPath = m.bestLine.getPath();
-			for (var i = 0; i < parsedResult['ground'].length; i++) {
-				bestPath.push(m.nodes[parsedResult['ground'][i]]);
+			var bestPath = m1.bestLine.getPath();
+			for (var i = 0; i < ground_Paths.length; i++) {
+				bestPath.push(m1.nodes[ground_Paths[i]]);
+			}
+			console.log(m1);
+			
+			m2.nodes = JSON.parse(parsedResult['building_1F_Nodes']);
+			var building_1F_Paths = parsedResult['building_1F_Paths'];
+			m2.bestLine.setMap(null);
+			m2.bestLine = new naver.maps.Polyline({
+				map : m2.map,
+				path : [],
+				strokeColor : '#AA0000',
+				strokeWeight : 4
+			});
+			var bestPath = m2.bestLine.getPath();
+			for (var i = 0; i < building_1F_Paths.length; i++) {
+				bestPath.push(
+					new naver.maps.Point(m2.nodes[building_1F_Paths[i]].x , m2.nodes[building_1F_Paths[i]].y));
+			}
+			
+			m3.nodes = JSON.parse(parsedResult['building_2F_Nodes']);
+			var building_2F_Paths = parsedResult['building_2F_Paths'];
+			m3.bestLine.setMap(null);
+			m3.bestLine = new naver.maps.Polyline({
+				map : m3.map,
+				path : [],
+				strokeColor : '#AA0000',
+				strokeWeight : 4
+			});
+			var bestPath = m3.bestLine.getPath();
+			console.log("DEBUG");
+			for (var i = 0; i < building_2F_Paths.length; i++) {
+				console.log(i + " : " +new naver.maps.Point(m3.nodes[building_2F_Paths[i]].x , m3.nodes[building_2F_Paths[i]].y));
+				bestPath.push(
+					new naver.maps.Point(m3.nodes[building_2F_Paths[i]].x , m3.nodes[building_2F_Paths[i]].y));
 			}
 		}
 	});

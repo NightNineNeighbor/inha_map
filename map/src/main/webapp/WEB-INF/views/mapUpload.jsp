@@ -16,8 +16,7 @@
 	window.onload = function() {
 		sayHello();
 		
-		var map;
-		makeCustomMap(map, "hak_1.jpg", "map1");
+		var map = makeCustomMap(map, "hak_1.jpg", "map1");
 		var metaMap = getMetaMap(map);
 		
 		naver.maps.Event.addListener(map, 'click', function(e) {

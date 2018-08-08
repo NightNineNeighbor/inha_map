@@ -42,10 +42,8 @@ public class MapController {
 	}
 	
 	@RequestMapping(value = "/findpath", method = RequestMethod.POST)
-	public ResponseEntity<String> dijkstra(String startingPoint, String buildingName, String destinationPoint)
+	public ResponseEntity<String> findpath(String startingPoint, String buildingName, String destinationPoint)
 			throws JsonParseException, JsonMappingException, IOException {
-		HashMap<String, ArrayList<Integer>> ret = new HashMap<>();
-		ret.put("ground", service.getGroundPath(startingPoint, buildingName));
-		return new ResponseEntity<String>(mapper.writeValueAsString(ret), HttpStatus.OK);
+		return new ResponseEntity<String>(service.getGroundPath(startingPoint, buildingName, destinationPoint) , HttpStatus.OK);
 	}
 }

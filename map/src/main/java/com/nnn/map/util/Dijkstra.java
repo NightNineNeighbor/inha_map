@@ -16,9 +16,20 @@ public class Dijkstra {
 	ArrayList<Integer>[] paths;
 	int theDestination;
 	int biggestNodeNum;
+	public int indexOfDestination;
 	PriorityQueue<Node> pq;
 	
 	public Dijkstra(int starting, List<Integer[]> rawGraph, Integer[] destinations) {
+		inite(starting, rawGraph, destinations);
+	}
+	
+	public Dijkstra(int starting, List<Integer[]> rawGraph, int destination) {
+		Integer[] d = new Integer[1];
+		d[0] = destination;
+		inite(starting, rawGraph, d);
+	}
+
+	private void inite(int starting, List<Integer[]> rawGraph, Integer[] destinations) {
 		this.rawGraph = rawGraph;
 		this.starting = starting;
 		this.destinations = destinations;
@@ -28,7 +39,7 @@ public class Dijkstra {
 		initePath();
 		calc();
 	}
-	
+
 	private void calcBiggestNodeNum() {
 		for(int i = 0 ; i < rawGraph.size(); i++) {
 			Integer[] t = rawGraph.get(i);
@@ -95,10 +106,12 @@ public class Dijkstra {
 	
 	public ArrayList<Integer> getShortestPath(){
 		int temp = Integer.MAX_VALUE;
-		for(int i : destinations) {
-			if(distance[i] < temp) {
-				temp = distance[i];
-				theDestination = i;
+		for(int index = 0; index < destinations.length; index++) {
+			int destination = destinations[index];
+			if(distance[destination] < temp) {
+				temp = distance[destination];
+				theDestination = destination;
+				this.indexOfDestination = index;
 			}
 		}
 		return paths[theDestination];
