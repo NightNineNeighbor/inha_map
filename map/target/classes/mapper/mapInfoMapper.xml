@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="mapInfoMapper">
+	<select id="test" resultType="string">
+		select id from test;
+	</select>
+
 	<insert id="insertGraphAndNodes" parameterType="mapInfo" >
 		insert into map_info_table(id, graph, nodes, selectable_nodes)
 		values(#{id}, #{graph}, #{nodes}, #{selectableNodes})
@@ -8,6 +12,10 @@
 	
 	<select id="readGraphAndNodes" parameterType="string" resultType="mapInfo">
 		select id, nodes, graph, selectable_nodes selectableNodes from map_info_table where id=#{id}
+	</select>
+	
+	<select id="getSelectable" parameterType="string" resultType="mapInfo">
+		select selectable_nodes selectableNodes from map_info_table where id=#{id}
 	</select>
 	
 	<update id="updateGraphAndNodes" parameterType="mapInfo">
@@ -18,10 +26,10 @@
 		delete from map_info_table where id = #{id}
 	</delete>
 	
-	<resultMap id="mapInfoResultMap" type="mapInfo">
+	<!-- <resultMap id="mapInfoResultMap" type="mapInfo">
 		<id property="id" column="ID"/>
 		<result property="graph" column="GRAPH" jdbcType="CLOB" javaType="java.lang.String" />
 		<result property="nodes" column="NODES" jdbcType="CLOB" javaType="java.lang.String" />
 		<result property="selectableNodes" column="SELECTABLE_NODES" jdbcType="CLOB" javaType="java.lang.String" />
-	</resultMap>
+	</resultMap> -->
 </mapper>

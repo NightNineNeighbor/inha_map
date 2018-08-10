@@ -16,12 +16,27 @@
 	window.onload = function() {
 		sayHello();
 		
-		var map = makeCustomMap(map, "hak_1.jpg", "map1");
-		var metaMap = getMetaMap(map);
+		var map;
+		var metaMap;
 		
-		naver.maps.Event.addListener(map, 'click', function(e) {
-			makeMarker(metaMap.nextMarkerName++, e.coord, metaMap);
-		});
+		document.getElementById("mapImageLoad").addEventListener("click",function() {
+			map = {};
+			metaMap = {};
+			var mapImage = $("#mapImage").val();
+			if(mapImage === 'ground'){
+				map = new naver.maps.Map('mapDiv', {
+					center : new naver.maps.LatLng(37.451001, 126.656370),
+					zoom : 12
+				});
+				metaMap = getMetaMap(map)
+			}else{
+				map = makeCustomMap($("#mapImage").val(), "mapDiv");
+				metaMap = getMetaMap(map);
+			}
+			naver.maps.Event.addListener(metaMap.map, 'click', function(e) {
+				makeMarker(metaMap.nextMarkerName++, e.coord, metaMap);
+			});
+		})
 		
 		document.getElementById("saveNode").addEventListener("click",function() {
 			printInfo("printInfo", metaMap);
@@ -29,6 +44,7 @@
 		
 		document.getElementById("loadNode").addEventListener("click",function() {
 			loadNode($("#nodesInfo").val(), $("#graphInfo").val(), $("#selectableInfo").val(), metaMap)
+			printInfo("printInfo", metaMap);
 		})
 		
 		document.getElementById("save").addEventListener("click",function() {
@@ -36,18 +52,20 @@
 			ajaxSaveGraphAndNodes($("#saveId").val(), metaMap)
 		});
 		
-		
 		document.getElementById("load").addEventListener("click",function() {
-			printInfo("one", metaMap);
 			ajaxLoadGraphAndNodes($("#loadId").val(), metaMap)
+			printInfo("one", metaMap);
 		});
 		
 	};
 </script>
 <body id="body">
 	<h1>${uploadedFile }</h1>
-
-	<div id="map1" style="border: 1px solid black; height: 500px; width: 500px;"></div>
+	<div>
+	<input type="text" id="mapImage">
+	<button id="mapImageLoad">맵 이미지 로드</button>
+	</div>
+	<div id="mapDiv" style="border: 1px solid black; height: 500px; width: 500px;"></div>
 	<div>
 	save ID : <input type="text" id="saveId"><button id="save">save</button>
 	</div>

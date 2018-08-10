@@ -14,12 +14,20 @@ public class MapInfoDao {
 	@Autowired
 	SqlSessionTemplate tpl;
 	
+	public String test() {
+		return tpl.selectOne("mapInfoMapper.test");
+	}
+	
 	public int insertGraphAndNodes(MapInfo mapInfo) {
 		return tpl.insert("mapInfoMapper.insertGraphAndNodes",mapInfo);
 	}
 
 	public MapInfo readGraphAndNodes(String id) {
 		return tpl.selectOne("mapInfoMapper.readGraphAndNodes",id);
+	}
+	
+	public MapInfo getSelectable(String id) {
+		return tpl.selectOne("mapInfoMapper.getSelectable",id);
 	}
 	
 	public int updateGraphAndNodes(MapInfo mapInfo) {
@@ -47,9 +55,9 @@ public class MapInfoDao {
 
 	public JSONBuildingInfo getBuildingInfo(String buildingName) {
 		JSONBuildingInfo o = new JSONBuildingInfo();
-		o.outsideEnterances = "[7,8]";
-		o.innerEnterances = "[3,6]";
-		o.stairs = "[[],[5,7],[1,6]]";
+		o.outsideEnterances = "[0,20]";
+		o.innerEnterances = "[28,32]";
+		o.stairs = "[[2,1,0],[3,14,21,22],[0,5,7,8]]";
 		o.elevators = "[]";
 		return o;
 	}

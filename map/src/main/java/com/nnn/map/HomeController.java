@@ -144,14 +144,10 @@ public class HomeController {
 		return "redirect:/mapUpload";//TODO
 	}
 	
-	@GetMapping("/mapUpload")
-	public String makeMap() {
-		return "mapUpload";
-	}
-	
 	@GetMapping("/test")
 	public String test(Model model) {
-		String testResult = mapInfoTestStory();
+		//String testResult = mapInfoTestStory();
+		String testResult = dao.test();
 		model.addAttribute("testResult", testResult);
 		return "test";
 	}

@@ -3,22 +3,23 @@ function sayHello(){
 }
 
 function getMetaMap(map){
-	var Object = {};
-	Object["map"] = map;
-	Object["nextMarkerName"] = 0;
-	Object["nodes"] = {};			//format : {"0":{"y":37.4515427,"_lat":37.4515427,"x":126.6564996,"_lng":126.6564996},}
-	Object["graph"] = [];			//format : [[0,1,33700],[1,2,9236]]
-	Object["markers"] = {};
-	Object["polylines"] = [];
-	Object["selectableNode"] = {};
-	Object["bestLine"] = new naver.maps.Polyline();
-	Object["flag"] = true;
-	Object["prevNode"] = 0;
-	Object["prevX"] = 0;
-	Object["prevY"] = 0;
-	Object["path"] = {};
-	Object["pl"] = {};
-	return Object
+	var object = {};
+	object["map"] = map;
+	object["nextMarkerName"] = 0;
+	object["nodes"] = {};			//format : {"0":{"y":37.4515427,"_lat":37.4515427,"x":126.6564996,"_lng":126.6564996},}
+	object["graph"] = [];			//format : [[0,1,33700],[1,2,9236]]
+	object["markers"] = {};
+	object["circles"] = {};
+	object["polylines"] = [];
+	object["selectableNode"] = {};
+	object["bestLine"] = new naver.maps.Polyline();
+	object["flag"] = true;
+	object["prevNode"] = 0;
+	object["prevX"] = 0;
+	object["prevY"] = 0;
+	object["path"] = {};
+	object["pl"] = {};
+	return object
 }
 
 function printInfo(targetName, m){
@@ -62,12 +63,13 @@ function ajaxFindPath(startingPoint, destinationPoint, m){
 	});
 }
 
-function ajaxFullFindPath(startingPoint, buildingName, destinationPoint, m1, m2, m3){
+function ajaxFullFindPath(startingPoint, buildingName, floor, destinationPoint, m1, m2, m3){
 	$.ajax({
 		url : "/map/findpath",
 		type : "post",
 		data : 	"startingPoint=" + startingPoint +
 				"&buildingName=" + buildingName +
+				"&floor=" + floor +
 				"&destinationPoint=" + destinationPoint,
 		success : function(result) {
 			var parsedResult = JSON.parse(result);
@@ -86,6 +88,31 @@ function ajaxFullFindPath(startingPoint, buildingName, destinationPoint, m1, m2,
 			for (var i = 0; i < ground_Paths.length; i++) {
 				bestPath.push(m1.nodes[ground_Paths[i]]);
 			}
+			
+			console.log("position : " + m1.nodes[ground_Paths[0]]);
+			var mmm1 = new naver.maps.Marker({
+			    position: m1.nodes[ground_Paths[0]],
+			    map: m1.map,
+			    title: 'Green',
+			    icon: {
+			        content:'<div style="background-color:white;border: 1px solid black;">출발</div>',
+			        size: new naver.maps.Size(22, 35),
+			        anchor: new naver.maps.Point(11, 30)
+			    }
+			});
+			var mmm2 = new naver.maps.Marker({
+			    position: m1.nodes[ground_Paths[ground_Paths.length-1]],
+			    map: m1.map,
+			    title: 'Green',
+			    icon: {
+			        content:'<div style="background-color:white;border: 1px solid black;">도착</div>',
+			        size: new naver.maps.Size(23, 35),
+			        anchor: new naver.maps.Point(11, 30)
+			    }
+			});
+			
+			
+			
 			console.log(m1);
 			
 			m2.nodes = JSON.parse(parsedResult['building_1F_Nodes']);
@@ -192,14 +219,10 @@ function makeMarker(name, position, m) { //마커 생성
 
 	//마커를 우클릭 -> 도착지 or 출발지로 지정할 수 있다.
 	naver.maps.Event.addListener(marker, 'rightclick', function(e) {
-		var icon = {
-			url : './resources/j.png',
-			size : new naver.maps.Size(24, 37),
-			anchor : new naver.maps.Point(12, 37),
-			origin : new naver.maps.Point(0, 0)
-		}
-		e.overlay.setIcon(icon);
-		m.selectableNode[e.overlay.name] = prompt();
+		var name = prompt();
+		e.overlay.setIcon(getHtmlIcon(name));
+		m.selectableNode[e.overlay.name] = name;
+		m.circles[e.overlay.name] = makeCircle(e.overlay.name, m);
 	});
 
 	//더블클릭 -> 마커의 제거
@@ -211,7 +234,11 @@ function makeMarker(name, position, m) { //마커 생성
 
 		delete m.nodes[deleteTarget]; //node 삭제
 
-		delete m.selectableNode[deleteTarget];
+		if(m.selectableNode[deleteTarget] !==undefined){
+			m.circles[deleteTarget].setMap(null);
+			delete m.circles[deleteTarget];
+			delete m.selectableNode[deleteTarget];
+		}
 
 		var index = 0; //해당 graph 삭제
 		var length = m.graph.length;
@@ -227,6 +254,7 @@ function makeMarker(name, position, m) { //마커 생성
 				break;
 			}
 		}
+		console.log(m.graph);	//DEBUG
 
 		for (var i = 0, ii = m.polylines.length; i < ii; i++) { //polyline 모두 삭제
 			m.polylines[i].setMap(null);
@@ -269,13 +297,9 @@ function loadNode(nodesInfo, graphInfo, selectableInfo, m) {
 	
 	m.selectableNode = JSON.parse(selectableInfo) 
 	$.each(m.selectableNode, function(key, values) {
-		var icon = {
-			url : './resources/j.png',
-			size : new naver.maps.Size(24, 37),
-			anchor : new naver.maps.Point(12, 37),
-			origin : new naver.maps.Point(0, 0)
-		}
-		m.markers[key].setIcon(icon);
+		makeCircle(key, m);
+		m.markers[key].setIcon(getHtmlIcon(values));
+		m.markers[key].setZIndex(100);
 	})
 
 	m.graph = JSON.parse(graphInfo);
@@ -288,10 +312,24 @@ function loadNode(nodesInfo, graphInfo, selectableInfo, m) {
 		});
 		m.polylines.push(pl);
 		path = pl.getPath();
-		//path.push(m.nodes[item[0]]);
-		//path.push(m.nodes[item[1]]);
 		path.push(new naver.maps.Point(m.nodes[item[0]].x , m.nodes[item[0]].y) );
 		path.push(new naver.maps.Point(m.nodes[item[1]].x , m.nodes[item[1]].y) );
+	});
+}
+
+function getHtmlIcon(name){
+	return {content:'<div style="background-color:white;border: 1px solid black;">'+name+'</div>',
+	 size: new naver.maps.Size(22, 35),
+	 anchor: new naver.maps.Point(11, 30)};
+}
+function makeCircle(name, m){
+	return new naver.maps.Circle({
+	    map: m.map,
+	    center: m.nodes[name],
+	    radius: 5,
+	    fillColor: '#5347AA',
+	    fillOpacity: 1,
+	    strokeColor: '#5347AA'
 	});
 }
 
@@ -360,8 +398,7 @@ function makeBuilding(controlObject,targetDiv) {
 	});
 }
 
-function makeCustomMap(controlObject, fileName, targetDiv) {
-	console.log("makeCustmoMap1");
+function makeCustomMap(fileName, targetDiv) {
 	var imgPath = './resources/' + fileName;
 
 	var tileSize = new naver.maps.Size(500, 500),
@@ -431,12 +468,71 @@ function ajaxLoadGraphAndNodes(id, m){
 		data : "id=" + id,
 		success : function(result) {
 			var info = JSON.parse(result);
+			console.log(info);	//DEBUG
 			loadNode(info.nodes, info.graph, info.selectableNodes, m);
 		}
 		
 	});
 }
 
+function autocomplete(inp, arr) {
+  /*the autocomplete function takes two arguments,
+  the text field element and an array of possible autocompleted values:*/
+  var currentFocus;
+  /*execute a function when someone writes in the text field:*/
+  inp.addEventListener("input", function(e) {
+      var a, b, i, val = this.value;
+      /*close any already open lists of autocompleted values*/
+      closeAllLists();
+      if (!val) { return false;}
+      currentFocus = -1;
+      /*create a DIV element that will contain the items (values):*/
+      a = document.createElement("DIV");
+      a.setAttribute("id", this.id + "autocomplete-list");
+      a.setAttribute("class", "autocomplete-items");
+      /*append the DIV element as a child of the autocomplete container:*/
+      this.parentNode.appendChild(a);
+      /*for each item in the array...*/
+      for (i = 0; i < arr.length; i++) {
+        /*check if the item starts with the same letters as the text field value:*/
+        if (arr[i].substr(0, val.length).toUpperCase() == val.toUpperCase()) {
+          /*create a DIV element for each matching element:*/
+          b = document.createElement("DIV");
+          /*make the matching letters bold:*/
+          b.innerHTML = "<strong>" + arr[i].substr(0, val.length) + "</strong>";
+          b.innerHTML += arr[i].substr(val.length);
+          /*insert a input field that will hold the current array item's value:*/
+          b.innerHTML += "<input type='hidden' value='" + arr[i] + "'>";
+          /*execute a function when someone clicks on the item value (DIV element):*/
+          b.addEventListener("click", function(e) {
+              /*insert the value for the autocomplete text field:*/
+              inp.value = this.getElementsByTagName("input")[0].value;
+              /*close the list of autocompleted values,
+              (or any other open lists of autocompleted values:*/
+              closeAllLists();
+          });
+          a.appendChild(b);
+        }
+      }
+  });
+
+  function closeAllLists(elmnt) {
+    /*close all autocomplete lists in the document,
+    except the one passed as an argument:*/
+    var x = document.getElementsByClassName("autocomplete-items");
+    for (var i = 0; i < x.length; i++) {
+      if (elmnt != x[i] && elmnt != inp) {
+        x[i].parentNode.removeChild(x[i]);
+      }
+    }
+  }
+  /*execute a function when someone clicks in the document:*/
+  document.addEventListener("click", function (e) {
+      closeAllLists(e.target);
+   });
+}
+
+var countries = ["김","김이","김이박","김이박최","Afghanistan","Albania","Algeria","Andorra","Angola","Anguilla","Antigua & Barbuda","Argentina","Armenia","Aruba","Australia","Austria","Azerbaijan","Bahamas","Bahrain","Bangladesh","Barbados","Belarus","Belgium","Belize","Benin","Bermuda","Bhutan","Bolivia","Bosnia & Herzegovina","Botswana","Brazil","British Virgin Islands","Brunei","Bulgaria","Burkina Faso","Burundi","Cambodia","Cameroon","Canada","Cape Verde","Cayman Islands","Central Arfrican Republic","Chad","Chile","China","Colombia","Congo","Cook Islands","Costa Rica","Cote D Ivoire","Croatia","Cuba","Curacao","Cyprus","Czech Republic","Denmark","Djibouti","Dominica","Dominican Republic","Ecuador","Egypt","El Salvador","Equatorial Guinea","Eritrea","Estonia","Ethiopia","Falkland Islands","Faroe Islands","Fiji","Finland","France","French Polynesia","French West Indies","Gabon","Gambia","Georgia","Germany","Ghana","Gibraltar","Greece","Greenland","Grenada","Guam","Guatemala","Guernsey","Guinea","Guinea Bissau","Guyana","Haiti","Honduras","Hong Kong","Hungary","Iceland","India","Indonesia","Iran","Iraq","Ireland","Isle of Man","Israel","Italy","Jamaica","Japan","Jersey","Jordan","Kazakhstan","Kenya","Kiribati","Kosovo","Kuwait","Kyrgyzstan","Laos","Latvia","Lebanon","Lesotho","Liberia","Libya","Liechtenstein","Lithuania","Luxembourg","Macau","Macedonia","Madagascar","Malawi","Malaysia","Maldives","Mali","Malta","Marshall Islands","Mauritania","Mauritius","Mexico","Micronesia","Moldova","Monaco","Mongolia","Montenegro","Montserrat","Morocco","Mozambique","Myanmar","Namibia","Nauro","Nepal","Netherlands","Netherlands Antilles","New Caledonia","New Zealand","Nicaragua","Niger","Nigeria","North Korea","Norway","Oman","Pakistan","Palau","Palestine","Panama","Papua New Guinea","Paraguay","Peru","Philippines","Poland","Portugal","Puerto Rico","Qatar","Reunion","Romania","Russia","Rwanda","Saint Pierre & Miquelon","Samoa","San Marino","Sao Tome and Principe","Saudi Arabia","Senegal","Serbia","Seychelles","Sierra Leone","Singapore","Slovakia","Slovenia","Solomon Islands","Somalia","South Africa","South Korea","South Sudan","Spain","Sri Lanka","St Kitts & Nevis","St Lucia","St Vincent","Sudan","Suriname","Swaziland","Sweden","Switzerland","Syria","Taiwan","Tajikistan","Tanzania","Thailand","Timor L'Este","Togo","Tonga","Trinidad & Tobago","Tunisia","Turkey","Turkmenistan","Turks & Caicos","Tuvalu","Uganda","Ukraine","United Arab Emirates","United Kingdom","United States of America","Uruguay","Uzbekistan","Vanuatu","Vatican City","Venezuela","Vietnam","Virgin Islands (US)","Yemen","Zambia","Zimbabwe"];
 
 
 
