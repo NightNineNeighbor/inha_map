@@ -5,16 +5,13 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>지도112a3</title>
-<script type="text/javascript"
-	src="https://openapi.map.naver.com/openapi/v3/maps.js?clientId=nVEUh5PrMsL3BXJq_8Pl&submodules=geocoder"></script>
-<script
-	src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<title>인하지도</title>
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/latest/css/bootstrap.min.css">
+<script src="//code.jquery.com/jquery.min.js"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/latest/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="https://openapi.map.naver.com/openapi/v3/maps.js?clientId=nVEUh5PrMsL3BXJq_8Pl&submodules=geocoder"></script>
 <script src="http://127.0.0.1:8081/map/resources/script/myfunction.js" type="text/javascript"></script>
 <style>
-div{
-	margin : 0 auto;
-}
 .autocomplete {
   /*the container must be positioned relative:*/
   position: relative;
@@ -53,32 +50,20 @@ div{
 			zoom : 12
 		});
 		var metaMap = getMetaMap(ground);
-		
-		var metaMapBE ;
-		
-		var metaMapBD;
-		
-		//buildingEnterance = makeCustomMap(buildingEnterance, "hak_1.jpg", "buildingEnterance");
-		//var metaMapBE = getMetaMap(buildingEnterance);
-		
-		//var buildingDestination = makeCustomMap(buildingDestination, "hak_1.jpg", "buildingDestination");
-		//var metaMapBD = getMetaMap(buildingDestination) 
+		var metaMapFirstFloor ;
+		var metaMapDestFloor;
 		
 		document.getElementById("findFullPath").addEventListener("click",function() {
-			var t = destinationPoints[$("#destinationPoint").val()];
+			var destination = $("#destinationPoint").val();
+			var t = destinationPoints[destination];
 			var floor = t["floor"];
-			console.log("floor" + floor);
 			var buildingName = t["buildingName"];
-			console.log("buildingName" + buildingName);
 			var destinationPoint = t["nodeNum"];
-			console.log("nodeNum" + destinationPoint);
-			ajaxFullFindPath($("#startingPoint").val(), buildingName, floor, destinationPoint,
-					metaMap, metaMapBE, metaMapBD);
+			ajaxFullFindPath($("#startingPoint").val(), buildingName, floor, destinationPoint, destination,
+					metaMap, metaMapFirstFloor, metaMapDestFloor);
 		});
 		
 		autocomplete(document.getElementById("destinationPoint"), arr);
-		autocomplete(document.getElementById("autoTest"), countries);
-		console.log(countries);
 		
 		function inite(){
 			var selectable = '${selectable}';
@@ -89,7 +74,6 @@ div{
 			building5_0F = JSON.parse(building5_0F);
 			building5_1F = JSON.parse(building5_1F);
 			building5_2F = JSON.parse(building5_2F);
-			console.log(selectable);
 			var startingPoint = document.getElementById("startingPoint");
 			$.each(selectable, function(key,value){
 				a = document.createElement("OPTION");
@@ -98,63 +82,50 @@ div{
 				startingPoint.appendChild(a);
 			});
 			$.each(building5_0F, function(key,value){
-				arr.push(value);
-				destinationPoints[value] = {buildingName:"building5",
-											"floor":0,
-											"nodeNum":key};
+				if(value.substr(0,2)!=="계단"){
+					arr.push(value);
+					destinationPoints[value] = {buildingName:"building5",
+												"floor":0,
+												"nodeNum":key};
+				}
 			});
 			$.each(building5_1F, function(key,value){
-				arr.push(value);
-				destinationPoints[value] = {buildingName:"building5",
-											"floor":1,
-											"nodeNum":key};
+				if(value.substr(0,2)!=="계단"){
+					arr.push(value);
+					destinationPoints[value] = {buildingName:"building5",
+												"floor":1,
+												"nodeNum":key};
+				}
 			});
 			$.each(building5_2F, function(key,value){
-				arr.push(value);
-				destinationPoints[value] = {buildingName:"building5",
-											"floor":2,
-											"nodeNum":key};
+				if(value.substr(0,2)!=="계단"){
+					arr.push(value);
+					destinationPoints[value] = {buildingName:"building5",
+												"floor":2,
+												"nodeNum":key};
+				}
 			});
-			console.log(destinationPoints);
 		}
 		
 	};
 </script>
 </head>
 <body id="body">
-<div id="header">
+<div id="header" style="text-align: center;">
 <h1>인하지도</h1>
 </div>
-<div id="selector">
-	출발 지점 : <select id="startingPoint"></select>
-	찾는 것 : 
-	<select>
-		<option>강의실</option>
-		<option>건물</option>
-		<option>행정 건물</option>
-		<option>편의 시설</option>
-		<option>동아리</option>
-	</select>
-	건물 이름 : 
-	<select id="buildingName">
-		<option value="1">5호관</option>
-		<option>본관</option>
-		<option>2호관</option>
-		<option>6호관</option>
-	</select>
-	
-	<div class="autocomplete">
-	도착 : <input id = destinationPoint type = "text">
-	</div>
+<div style="width:500px; margin:0 auto;">
+출발 지점 : <select id="startingPoint"></select>
+</div>
+
+<div style="width:500px; margin:0 auto;">
+<div class="autocomplete" >
+	도착 지점 : <input id = destinationPoint type = "text">
 	<button id="findFullPath">길찾기!</button>
 </div>
-<div>
-	<div id="ground" style="border: 1px solid black; height: 500px; width: 500px;"></div>
-	<div id="buildingEnterance" style="border: 1px solid black; height: 500px; width: 500px;"></div>
-	<div id="buildingDestination" style="border: 1px solid black; height: 500px; width: 500px;"></div>
-	<div class="autocomplete">
-	도착 호실 : <input id="autoTest" type="text">
-	</div>
 </div>
+<div id="ground" class="center-block" style="border: 1px solid black; height: 500px; width: 500px; margin : auto"></div>
+<div id=firstFloor class="center-block" style="border: 1px solid white; height: 500px; width: 500px; margin : auto"></div>
+<div id="destFloor" class="center-block" style="border: 1px solid white; height: 500px; width: 500px; margin : auto"></div>
 </body>
 </html>

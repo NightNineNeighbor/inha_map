@@ -19,6 +19,14 @@ public class Dijkstra {
 	public int indexOfDestination;
 	PriorityQueue<Node> pq;
 	
+	private void statusForDEBUG() {
+		System.out.println("STATUS FOR DEBUG");
+		System.out.println("starting : " + starting);
+		System.out.println("theDestination : " + theDestination);
+		System.out.println("biggestNodeNum : " + biggestNodeNum);
+		System.out.println("indexOfDestination : " + indexOfDestination);
+	}
+	
 	public Dijkstra(int starting, List<Integer[]> rawGraph, Integer[] destinations) {
 		inite(starting, rawGraph, destinations);
 	}

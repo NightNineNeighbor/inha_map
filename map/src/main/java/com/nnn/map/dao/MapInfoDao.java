@@ -55,8 +55,8 @@ public class MapInfoDao {
 
 	public JSONBuildingInfo getBuildingInfo(String buildingName) {
 		JSONBuildingInfo o = new JSONBuildingInfo();
-		o.outsideEnterances = "[0,20]";
-		o.innerEnterances = "[28,32]";
+		o.outsideEnterances = "[28,32]";
+		o.innerEnterances = "[0,20]";
 		o.stairs = "[[2,1,0],[3,14,21,22],[0,5,7,8]]";
 		o.elevators = "[]";
 		return o;

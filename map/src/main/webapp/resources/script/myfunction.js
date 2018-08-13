@@ -63,7 +63,7 @@ function ajaxFindPath(startingPoint, destinationPoint, m){
 	});
 }
 
-function ajaxFullFindPath(startingPoint, buildingName, floor, destinationPoint, m1, m2, m3){
+function ajaxFullFindPath(startingPoint, buildingName, floor, destinationPoint, destination, m1, m2, m3){
 	$.ajax({
 		url : "/map/findpath",
 		type : "post",
@@ -73,80 +73,67 @@ function ajaxFullFindPath(startingPoint, buildingName, floor, destinationPoint, 
 				"&destinationPoint=" + destinationPoint,
 		success : function(result) {
 			var parsedResult = JSON.parse(result);
-			console.log(parsedResult);
 			
-			m1.nodes = JSON.parse(parsedResult['ground_Nodes']);
-			var ground_Paths = parsedResult['ground_Paths'];
-			m1.bestLine.setMap(null);
-			m1.bestLine = new naver.maps.Polyline({
-				map : m1.map,
-				path : [],
-				strokeColor : '#AA0000',
-				strokeWeight : 4
+			var groundNodes = JSON.parse(parsedResult['ground_Nodes'])
+			console.log(groundNodes[startingPoint]);
+			m1.map = new naver.maps.Map('ground', {
+				center : groundNodes[startingPoint],
+				zoom : 12
 			});
-			var bestPath = m1.bestLine.getPath();
-			for (var i = 0; i < ground_Paths.length; i++) {
-				bestPath.push(m1.nodes[ground_Paths[i]]);
+			drawPath(groundNodes ,parsedResult['ground_Paths'], "도착" ,m1)
+			
+			var msg;
+			if(floor===1){
+				msg = destination;
+			}else{
+				msg = floor + "층으로";
 			}
-			
-			console.log("position : " + m1.nodes[ground_Paths[0]]);
-			var mmm1 = new naver.maps.Marker({
-			    position: m1.nodes[ground_Paths[0]],
-			    map: m1.map,
-			    title: 'Green',
-			    icon: {
-			        content:'<div style="background-color:white;border: 1px solid black;">출발</div>',
-			        size: new naver.maps.Size(22, 35),
-			        anchor: new naver.maps.Point(11, 30)
-			    }
-			});
-			var mmm2 = new naver.maps.Marker({
-			    position: m1.nodes[ground_Paths[ground_Paths.length-1]],
-			    map: m1.map,
-			    title: 'Green',
-			    icon: {
-			        content:'<div style="background-color:white;border: 1px solid black;">도착</div>',
-			        size: new naver.maps.Size(23, 35),
-			        anchor: new naver.maps.Point(11, 30)
-			    }
-			});
-			
-			
-			
-			console.log(m1);
-			
-			m2.nodes = JSON.parse(parsedResult['building_1F_Nodes']);
-			var building_1F_Paths = parsedResult['building_1F_Paths'];
-			m2.bestLine.setMap(null);
-			m2.bestLine = new naver.maps.Polyline({
-				map : m2.map,
-				path : [],
-				strokeColor : '#AA0000',
-				strokeWeight : 4
-			});
-			var bestPath = m2.bestLine.getPath();
-			for (var i = 0; i < building_1F_Paths.length; i++) {
-				bestPath.push(
-					new naver.maps.Point(m2.nodes[building_1F_Paths[i]].x , m2.nodes[building_1F_Paths[i]].y));
-			}
-			
-			m3.nodes = JSON.parse(parsedResult['building_2F_Nodes']);
-			var building_2F_Paths = parsedResult['building_2F_Paths'];
-			m3.bestLine.setMap(null);
-			m3.bestLine = new naver.maps.Polyline({
-				map : m3.map,
-				path : [],
-				strokeColor : '#AA0000',
-				strokeWeight : 4
-			});
-			var bestPath = m3.bestLine.getPath();
-			console.log("DEBUG");
-			for (var i = 0; i < building_2F_Paths.length; i++) {
-				console.log(i + " : " +new naver.maps.Point(m3.nodes[building_2F_Paths[i]].x , m3.nodes[building_2F_Paths[i]].y));
-				bestPath.push(
-					new naver.maps.Point(m3.nodes[building_2F_Paths[i]].x , m3.nodes[building_2F_Paths[i]].y));
+			m2 = getMetaMap(makeCustomMap(buildingName+'_1F.png', "firstFloor"));
+			drawPath(JSON.parse(parsedResult[buildingName+'_1F_Nodes']),
+					 parsedResult[buildingName+'_1F_Paths'],
+					 msg,
+					 m2)
+			if(floor===1){
+			}else{
+				m3 = getMetaMap(makeCustomMap(buildingName+'_'+floor+'F.png', "destFloor"));
+				drawPath(JSON.parse(parsedResult[buildingName+'_'+floor+'F_Nodes']), 
+						 parsedResult[buildingName+'_'+floor+'F_Paths'], 
+						 destination,
+						 m3)
 			}
 		}
+	});
+}
+
+function drawPath(nodes, path, message, m){
+	m.nodes = nodes;
+	m.bestLine.setMap(null);
+	m.bestLine = new naver.maps.Polyline({
+		map : m.map,
+		path : [],
+		strokeColor : '#AA0000',
+		strokeWeight : 4
+	});
+	var bestPath = m.bestLine.getPath();
+	for (var i = 0; i < path.length; i++) {
+		bestPath.push(
+				new naver.maps.Point(m.nodes[path[i]].x , m.nodes[path[i]].y));
+	}
+	makeHtmlIcon("출발", m.nodes[path[0]], m);
+	makeHtmlIcon(message, m.nodes[path[path.length-1]], m);
+}
+
+
+function makeHtmlIcon(message, position, m){
+	new naver.maps.Marker({
+	    position: position,
+	    map: m.map,
+	    title: 'Green',
+	    icon: {
+	        content:'<div style="background-color:white;border: 1px solid black;">'+message+'</div>',
+	        size: new naver.maps.Size(22, 35),
+	        anchor: new naver.maps.Point(11, 30)
+	    }
 	});
 }
 
@@ -254,7 +241,6 @@ function makeMarker(name, position, m) { //마커 생성
 				break;
 			}
 		}
-		console.log(m.graph);	//DEBUG
 
 		for (var i = 0, ii = m.polylines.length; i < ii; i++) { //polyline 모두 삭제
 			m.polylines[i].setMap(null);
@@ -468,7 +454,6 @@ function ajaxLoadGraphAndNodes(id, m){
 		data : "id=" + id,
 		success : function(result) {
 			var info = JSON.parse(result);
-			console.log(info);	//DEBUG
 			loadNode(info.nodes, info.graph, info.selectableNodes, m);
 		}
 		
@@ -476,45 +461,45 @@ function ajaxLoadGraphAndNodes(id, m){
 }
 
 function autocomplete(inp, arr) {
-  /*the autocomplete function takes two arguments,
-  the text field element and an array of possible autocompleted values:*/
-  var currentFocus;
-  /*execute a function when someone writes in the text field:*/
-  inp.addEventListener("input", function(e) {
-      var a, b, i, val = this.value;
-      /*close any already open lists of autocompleted values*/
-      closeAllLists();
-      if (!val) { return false;}
-      currentFocus = -1;
-      /*create a DIV element that will contain the items (values):*/
-      a = document.createElement("DIV");
-      a.setAttribute("id", this.id + "autocomplete-list");
-      a.setAttribute("class", "autocomplete-items");
-      /*append the DIV element as a child of the autocomplete container:*/
-      this.parentNode.appendChild(a);
-      /*for each item in the array...*/
-      for (i = 0; i < arr.length; i++) {
-        /*check if the item starts with the same letters as the text field value:*/
-        if (arr[i].substr(0, val.length).toUpperCase() == val.toUpperCase()) {
-          /*create a DIV element for each matching element:*/
-          b = document.createElement("DIV");
-          /*make the matching letters bold:*/
-          b.innerHTML = "<strong>" + arr[i].substr(0, val.length) + "</strong>";
-          b.innerHTML += arr[i].substr(val.length);
-          /*insert a input field that will hold the current array item's value:*/
-          b.innerHTML += "<input type='hidden' value='" + arr[i] + "'>";
-          /*execute a function when someone clicks on the item value (DIV element):*/
-          b.addEventListener("click", function(e) {
-              /*insert the value for the autocomplete text field:*/
-              inp.value = this.getElementsByTagName("input")[0].value;
-              /*close the list of autocompleted values,
-              (or any other open lists of autocompleted values:*/
-              closeAllLists();
-          });
-          a.appendChild(b);
-        }
-      }
-  });
+	inp.addEventListener("focus", function(e){
+		a = document.createElement("DIV");
+		a.setAttribute("id", this.id + "autocomplete-list");
+		a.setAttribute("class", "autocomplete-items");
+		this.parentNode.appendChild(a);
+		for (i = 0; i < arr.length; i++) {
+			b = document.createElement("DIV");
+			b.innerHTML = arr[i];
+			b.innerHTML += "<input type='hidden' value='" + arr[i] + "'>";
+			b.addEventListener("click", function(e) {
+				inp.value = this.getElementsByTagName("input")[0].value;
+				closeAllLists();
+			});
+			a.appendChild(b);
+		}
+	});
+	
+	inp.addEventListener("input", function(e) {
+		var a, b, i, val = this.value;
+		closeAllLists();
+		if (!val) { return false;}
+		a = document.createElement("DIV");
+		a.setAttribute("id", this.id + "autocomplete-list");
+		a.setAttribute("class", "autocomplete-items");
+		this.parentNode.appendChild(a);
+		for (i = 0; i < arr.length; i++) {
+			if (arr[i].substr(0, val.length).toUpperCase() == val.toUpperCase()) {
+				b = document.createElement("DIV");
+				b.innerHTML = "<strong>" + arr[i].substr(0, val.length) + "</strong>";
+				b.innerHTML += arr[i].substr(val.length);
+				b.innerHTML += "<input type='hidden' value='" + arr[i] + "'>";
+				b.addEventListener("click", function(e) {
+					inp.value = this.getElementsByTagName("input")[0].value;
+					closeAllLists();
+				});
+				a.appendChild(b);
+			}
+		}
+	});
 
   function closeAllLists(elmnt) {
     /*close all autocomplete lists in the document,
@@ -532,7 +517,6 @@ function autocomplete(inp, arr) {
    });
 }
 
-var countries = ["김","김이","김이박","김이박최","Afghanistan","Albania","Algeria","Andorra","Angola","Anguilla","Antigua & Barbuda","Argentina","Armenia","Aruba","Australia","Austria","Azerbaijan","Bahamas","Bahrain","Bangladesh","Barbados","Belarus","Belgium","Belize","Benin","Bermuda","Bhutan","Bolivia","Bosnia & Herzegovina","Botswana","Brazil","British Virgin Islands","Brunei","Bulgaria","Burkina Faso","Burundi","Cambodia","Cameroon","Canada","Cape Verde","Cayman Islands","Central Arfrican Republic","Chad","Chile","China","Colombia","Congo","Cook Islands","Costa Rica","Cote D Ivoire","Croatia","Cuba","Curacao","Cyprus","Czech Republic","Denmark","Djibouti","Dominica","Dominican Republic","Ecuador","Egypt","El Salvador","Equatorial Guinea","Eritrea","Estonia","Ethiopia","Falkland Islands","Faroe Islands","Fiji","Finland","France","French Polynesia","French West Indies","Gabon","Gambia","Georgia","Germany","Ghana","Gibraltar","Greece","Greenland","Grenada","Guam","Guatemala","Guernsey","Guinea","Guinea Bissau","Guyana","Haiti","Honduras","Hong Kong","Hungary","Iceland","India","Indonesia","Iran","Iraq","Ireland","Isle of Man","Israel","Italy","Jamaica","Japan","Jersey","Jordan","Kazakhstan","Kenya","Kiribati","Kosovo","Kuwait","Kyrgyzstan","Laos","Latvia","Lebanon","Lesotho","Liberia","Libya","Liechtenstein","Lithuania","Luxembourg","Macau","Macedonia","Madagascar","Malawi","Malaysia","Maldives","Mali","Malta","Marshall Islands","Mauritania","Mauritius","Mexico","Micronesia","Moldova","Monaco","Mongolia","Montenegro","Montserrat","Morocco","Mozambique","Myanmar","Namibia","Nauro","Nepal","Netherlands","Netherlands Antilles","New Caledonia","New Zealand","Nicaragua","Niger","Nigeria","North Korea","Norway","Oman","Pakistan","Palau","Palestine","Panama","Papua New Guinea","Paraguay","Peru","Philippines","Poland","Portugal","Puerto Rico","Qatar","Reunion","Romania","Russia","Rwanda","Saint Pierre & Miquelon","Samoa","San Marino","Sao Tome and Principe","Saudi Arabia","Senegal","Serbia","Seychelles","Sierra Leone","Singapore","Slovakia","Slovenia","Solomon Islands","Somalia","South Africa","South Korea","South Sudan","Spain","Sri Lanka","St Kitts & Nevis","St Lucia","St Vincent","Sudan","Suriname","Swaziland","Sweden","Switzerland","Syria","Taiwan","Tajikistan","Tanzania","Thailand","Timor L'Este","Togo","Tonga","Trinidad & Tobago","Tunisia","Turkey","Turkmenistan","Turks & Caicos","Tuvalu","Uganda","Ukraine","United Arab Emirates","United Kingdom","United States of America","Uruguay","Uzbekistan","Vanuatu","Vatican City","Venezuela","Vietnam","Virgin Islands (US)","Yemen","Zambia","Zimbabwe"];
 
 
 
