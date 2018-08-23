@@ -36,15 +36,9 @@
 			naver.maps.Event.addListener(metaMap.map, 'click', function(e) {
 				makeMarker(metaMap.nextMarkerName++, e.coord, metaMap);
 			});
-		})
-		
-		document.getElementById("saveNode").addEventListener("click",function() {
-			printInfo("printInfo", metaMap);
-		});
-		
-		document.getElementById("loadNode").addEventListener("click",function() {
-			loadNode($("#nodesInfo").val(), $("#graphInfo").val(), $("#selectableInfo").val(), metaMap)
-			printInfo("printInfo", metaMap);
+			
+			ajaxLoadGraphAndNodes($("#mapImage").val(), metaMap)
+			
 		})
 		
 		document.getElementById("save").addEventListener("click",function() {
@@ -52,11 +46,9 @@
 			ajaxSaveGraphAndNodes($("#saveId").val(), metaMap)
 		});
 		
-		document.getElementById("load").addEventListener("click",function() {
-			ajaxLoadGraphAndNodes($("#loadId").val(), metaMap)
-			printInfo("one", metaMap);
+		document.getElementById("printInfo").addEventListener("click",function() {
+			printInfo("mapInfo", metaMap);
 		});
-		
 	};
 </script>
 <body id="body">
@@ -65,25 +57,11 @@
 	<input type="text" id="mapImage">
 	<button id="mapImageLoad">맵 이미지 로드</button>
 	</div>
-	<div id="mapDiv" style="border: 1px solid black; height: 500px; width: 500px;"></div>
 	<div>
 	save ID : <input type="text" id="saveId"><button id="save">save</button>
 	</div>
-	<div>
-	load ID : <input type="text" id="loadId"><button id="load">load</button>
-	</div>
-	<div id = "one"></div>
-	<div id = "two"></div>
-	nodesInfo :
-	<input id="nodesInfo" type="text">
-	<br> graphInfo :
-	<input id="graphInfo" type="text">
-	<br> selectableInfo :
-	<input id="selectableInfo" type="text">
-	<br>
-	<button id="loadNode">loadNode</button>
-	<button id="saveNode">saveNode</button>
-	<div id="printInfo"></div>
-	
+	<div id="mapDiv" style="border: 1px solid black; height: 500px; width: 500px;"></div>
+	<button id="printInfo">맵 정보 표시</button>
+	<div id = "mapInfo"></div>
 </body>
 </html>

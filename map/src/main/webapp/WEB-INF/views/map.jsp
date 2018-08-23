@@ -10,8 +10,16 @@
 <script src="//code.jquery.com/jquery.min.js"></script>
 <script src="//maxcdn.bootstrapcdn.com/bootstrap/latest/js/bootstrap.min.js"></script>
 <script type="text/javascript" src="https://openapi.map.naver.com/openapi/v3/maps.js?clientId=nVEUh5PrMsL3BXJq_8Pl&submodules=geocoder"></script>
-<script src="http://127.0.0.1:8081/map/resources/script/myfunction.js" type="text/javascript"></script>
+<script src="./resources/script/myfunction.js" type="text/javascript"></script>
 <style>
+body{
+}
+::-webkit-scrollbar { -webkit-appearance: none; } 
+::-webkit-scrollbar:vertical { width: 10%; } 
+::-webkit-scrollbar:horizontal { height: 20px; } 
+::-webkit-scrollbar-thumb { background-color: rgba(0, 0, 0, .5); border-radius: 10px; border: 2px solid #ffffff; } 
+::-webkit-scrollbar-track { border-radius: 10px; background-color: #ffffff; }
+
 .autocomplete {
   /*the container must be positioned relative:*/
   position: relative;
@@ -38,9 +46,30 @@
   /*when hovering an item:*/
   background-color: #e9e9e9; 
 }
+
+#loadingPage {
+	width: 100%;
+	height: 100%;
+	top: 0;
+	left: 0;
+	position: fixed;
+	display: table;
+	background: black;
+	z-index: 999;
+	text-align: center;
+	font-weight: bold;
+	font-size: 50px;
+}
+
+#loadingMessage {
+	display: table-cell;
+	vertical-align: middle;
+	color:white;
+}
 </style>
 <script>
 	window.onload = function() {
+		
 		var destinationPoints = {};
 		var arr = [];
 		inite();
@@ -105,14 +134,17 @@
 												"nodeNum":key};
 				}
 			});
+			$("#loadingPage").fadeOut(1000);
 		}
 		
 	};
 </script>
 </head>
 <body id="body">
+<div id="loadingPage">
+	<div id="loadingMessage">인하지도</div>
+</div>
 <div id="header" style="text-align: center;">
-<h1>인하지도</h1>
 </div>
 <div style="width:500px; margin:0 auto;">
 출발 지점 : <select id="startingPoint"></select>
