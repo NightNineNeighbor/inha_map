@@ -116,6 +116,9 @@ public class Dijkstra {
 		int temp = Integer.MAX_VALUE;
 		for(int index = 0; index < destinations.length; index++) {
 			int destination = destinations[index];
+			if(destination == -1) {
+				continue;
+			}
 			if(distance[destination] < temp) {
 				temp = distance[destination];
 				theDestination = destination;

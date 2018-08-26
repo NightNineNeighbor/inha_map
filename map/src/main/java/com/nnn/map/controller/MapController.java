@@ -8,14 +8,17 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nnn.map.dao.MapInfoDao;
 import com.nnn.map.service.MapService;
+import com.nnn.map.vo.MapInfo;
 
 @Controller
 public class MapController {
@@ -52,5 +55,26 @@ public class MapController {
 	public ResponseEntity<String> findpath(String startingPoint, String buildingName, String floor, String destinationPoint)
 			throws JsonParseException, JsonMappingException, IOException {
 		return new ResponseEntity<String>(service.findPath(startingPoint, buildingName, floor, destinationPoint) , HttpStatus.OK);
+	}
+	
+	@PostMapping("/saveMapInfo")
+	public ResponseEntity<String> saveGraphAndNodes(String id, String nodes, String graph, String selectableNodes, String stairs, String elevators){
+		MapInfo mapInfo = new MapInfo(id, graph, nodes, selectableNodes, stairs, elevators);
+		int isInsertClear = dao.insertGraphAndNodes(mapInfo);
+		String inserStatus = "";
+		if(isInsertClear == 1 ) {
+			inserStatus = "OK";
+		}else {
+			inserStatus = "FAIL";
+		}
+		return new ResponseEntity<String>( inserStatus , HttpStatus.OK);
+	}
+	
+	@RequestMapping(value = "/loadMapInfo",method=RequestMethod.POST, produces="text/plan;charset=UTF-8")
+	public ResponseEntity<String> loadMapInfo(String id) throws JsonProcessingException{
+		MapInfo mapInfo = dao.readGraphAndNodes(id);
+		System.out.println(mapInfo);		//DEBUG
+		System.out.println(mapper.writeValueAsString(mapInfo));	//DEBUG
+		return new ResponseEntity<String>( mapper.writeValueAsString(mapInfo) , HttpStatus.OK);
 	}
 }

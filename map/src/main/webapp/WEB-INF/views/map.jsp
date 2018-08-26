@@ -156,8 +156,8 @@ body{
 	<button id="findFullPath">길찾기!</button>
 </div>
 </div>
-<div id="ground" class="center-block" style="border: 1px solid black; height: 500px; width: 500px; margin : auto"></div>
-<div id=firstFloor class="center-block" style="border: 1px solid white; height: 500px; width: 500px; margin : auto"></div>
-<div id="destFloor" class="center-block" style="border: 1px solid white; height: 500px; width: 500px; margin : auto"></div>
+<div id="ground" class="center-block" style="border: 1px solid black; height: 500px; width: 100%; margin : auto"></div>
+<div id=firstFloor class="center-block" style="border: 1px solid white; height: 500px; width: 100%; margin : auto"></div>
+<div id="destFloor" class="center-block" style="border: 1px solid white; height: 500px; width: 100%; margin : auto"></div>
 </body>
 </html>

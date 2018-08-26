@@ -12,6 +12,8 @@ function getMetaMap(map){
 	object["circles"] = {};
 	object["polylines"] = [];
 	object["selectableNode"] = {};
+	object["stairs"] = [];
+	object["elevators"] = [];
 	object["bestLine"] = new naver.maps.Polyline();
 	object["flag"] = true;
 	object["prevNode"] = 0;
@@ -36,6 +38,10 @@ function printInfo(targetName, m){
 	$("#" + targetName).append(JSON.stringify(m.graph))
 	$("#" + targetName).append("</br>selectableNode </br>");
 	$("#" + targetName).append(JSON.stringify(m.selectableNode))
+	$("#" + targetName).append("</br>stairs </br>");
+	$("#" + targetName).append(JSON.stringify(m.stairs))
+	$("#" + targetName).append("</br>elevators </br>");
+	$("#" + targetName).append(JSON.stringify(m.elevators))
 }
 
 function ajaxFindPath(startingPoint, destinationPoint, m){
@@ -88,14 +94,14 @@ function ajaxFullFindPath(startingPoint, buildingName, floor, destinationPoint, 
 			}else{
 				msg = floor + "층으로";
 			}
-			m2 = getMetaMap(makeCustomMap(buildingName+'_1F.png', "firstFloor"));
+			m2 = getMetaMap(makeCustomMap(buildingName, 1, "firstFloor"));
 			drawPath(JSON.parse(parsedResult[buildingName+'_1F_Nodes']),
 					 parsedResult[buildingName+'_1F_Paths'],
 					 msg,
 					 m2)
 			if(floor===1){
 			}else{
-				m3 = getMetaMap(makeCustomMap(buildingName+'_'+floor+'F.png', "destFloor"));
+				m3 = getMetaMap(makeCustomMap(buildingName, floor, "destFloor"));
 				drawPath(JSON.parse(parsedResult[buildingName+'_'+floor+'F_Nodes']), 
 						 parsedResult[buildingName+'_'+floor+'F_Paths'], 
 						 destination,
@@ -207,8 +213,16 @@ function makeMarker(name, position, m) { //마커 생성
 	//마커를 우클릭 -> 도착지 or 출발지로 지정할 수 있다.
 	naver.maps.Event.addListener(marker, 'rightclick', function(e) {
 		var name = prompt();
+		if(name.substring(0,2) === "계단"){
+			name = name + m.stairs.length;
+			m.stairs.push(e.overlay.name);
+		}else if(name.substring(0,5) === "엘레베이터"){
+			name = name + m.elevators.length;
+			m.elevators.push(e.overlay.name);
+		}else{
+			m.selectableNode[e.overlay.name] = name;
+		}
 		e.overlay.setIcon(getHtmlIcon(name));
-		m.selectableNode[e.overlay.name] = name;
 		m.circles[e.overlay.name] = makeCircle(e.overlay.name, m);
 	});
 
@@ -225,6 +239,18 @@ function makeMarker(name, position, m) { //마커 생성
 			m.circles[deleteTarget].setMap(null);
 			delete m.circles[deleteTarget];
 			delete m.selectableNode[deleteTarget];
+		}
+		while( m.stairs.includes(deleteTarget) ){
+			var i = m.stairs.indexOf(deleteTarget);
+			m.stairs.splice(i,1);
+			m.circles[deleteTarget].setMap(null);
+			delete m.circles[deleteTarget];
+		}
+		while( m.elevators.includes(deleteTarget) ){
+			var i = m.stairs.indexOf(deleteTarget);
+			m.elevators.splice(i,1);
+			m.circles[deleteTarget].setMap(null);
+			delete m.circles[deleteTarget];
 		}
 
 		var index = 0; //해당 graph 삭제
@@ -263,7 +289,7 @@ function makeMarker(name, position, m) { //마커 생성
 	});
 }
 
-function loadNode(nodesInfo, graphInfo, selectableInfo, m) {
+function loadNode(nodesInfo, graphInfo, selectableInfo, stairs, elevators,  m) {
 	$.each(m.markers, function(key, value) {
 		value.setMap(null);
 	});
@@ -286,6 +312,20 @@ function loadNode(nodesInfo, graphInfo, selectableInfo, m) {
 		makeCircle(key, m);
 		m.markers[key].setIcon(getHtmlIcon(values));
 		m.markers[key].setZIndex(100);
+	})
+	
+	m.stairs = JSON.parse(stairs)
+	$.each(m.stairs, function(index, item) {
+		makeCircle(item, m);
+		m.markers[item].setIcon(getHtmlIcon("계단"+index));
+		m.markers[item].setZIndex(100);
+	})
+	
+	m.elevators = JSON.parse(elevators)
+	$.each(m.elevators, function(index, item) {
+		makeCircle(item, m);
+		m.markers[item].setIcon(getHtmlIcon("엘레베이터"+index));
+		m.markers[item].setZIndex(100);
 	})
 
 	m.graph = JSON.parse(graphInfo);
@@ -384,10 +424,10 @@ function makeBuilding(controlObject,targetDiv) {
 	});
 }
 
-function makeCustomMap(fileName, targetDiv) {
-	var imgPath = './resources/' + fileName;
-
-	var tileSize = new naver.maps.Size(500, 500),
+function makeCustomMap(buildingName, floor, targetDiv) {
+	var imgPath = './resources/' + buildingName + "/" + floor + "F.jpg";
+	
+	var tileSize = new naver.maps.Size(1000, 1000),
 	
 		proj = {
 			fromCoordToPoint : function(coord) {
@@ -424,7 +464,7 @@ function makeCustomMap(fileName, targetDiv) {
 		};
 
 	return new naver.maps.Map(targetDiv, {
-		center : new naver.maps.Point(250, 250),
+		center : new naver.maps.Point(500, 500),
 		zoom : 0,
 		background : '#FFFFFF',
 		mapTypes : new naver.maps.MapTypeRegistry({
@@ -433,28 +473,30 @@ function makeCustomMap(fileName, targetDiv) {
 	});
 }
 
-function ajaxSaveGraphAndNodes(id, m){
+function ajaxSaveMapInfo(id, m){
 	$.ajax({
-		url : "/map/saveGraphAndNodes",
+		url : "/map/saveMapInfo",
 		type : "post",
 		data : "id=" + id + 
 				"&nodes=" + JSON.stringify(m.nodes) + 
 				"&graph=" + JSON.stringify(m.graph) +
-				"&selectableNodes=" + JSON.stringify(m.selectableNode),
+				"&selectableNodes=" + JSON.stringify(m.selectableNode) +
+				"&stairs=" + JSON.stringify(m.stairs) +
+				"&elevators=" + JSON.stringify(m.elevators),
 		success : function(result) {
 		}
 		
 	});
 }
 
-function ajaxLoadGraphAndNodes(id, m){
+function ajaxLoadMapInfo(id, m){
 	$.ajax({
-		url : "/map/loadGraphAndNodes",
+		url : "/map/loadMapInfo",
 		type : "post",
 		data : "id=" + id,
 		success : function(result) {
 			var info = JSON.parse(result);
-			loadNode(info.nodes, info.graph, info.selectableNodes, m);
+			loadNode(info.nodes, info.graph, info.selectableNodes, info.stairs, info.elevators, m);
 		}
 		
 	});

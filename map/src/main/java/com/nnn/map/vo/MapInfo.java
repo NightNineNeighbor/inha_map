@@ -12,4 +12,6 @@ public class MapInfo {
 	private String graph;
 	private String nodes;
 	private String selectableNodes;
+	private String stairs;
+	private String elevators;
 }
