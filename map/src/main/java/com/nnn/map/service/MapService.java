@@ -14,8 +14,9 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nnn.map.dao.MapInfoDao;
-import com.nnn.map.info.ParsedBuildingInfo;
+import com.nnn.map.info.ParsedEnteranceInfo;
 import com.nnn.map.util.Dijkstra;
+import com.nnn.map.vo.EnteranceInfo;
 import com.nnn.map.vo.MapInfo;
 
 @Service
@@ -30,40 +31,43 @@ public class MapService {
 		int starting = Integer.parseInt(startingPoint);
 		int destination = Integer.parseInt(destinationPoint);
 		
-		ParsedBuildingInfo parsedBuildingInfo = new ParsedBuildingInfo(dao.getBuildingInfo(buildingName), mapper);
+		ParsedEnteranceInfo parsedEnteranceInfo = 
+				new ParsedEnteranceInfo(dao.readEnteranceInfo(buildingName), mapper);
 		
-		MapInfo groundMapInfo = dao.readGraphAndNodes("ground");
+		MapInfo groundMapInfo = dao.readMapInfo("ground");
 		List<Integer[]> groundRawGraph = mapper.readValue(groundMapInfo.getGraph(), new TypeReference<List<Integer[]>>() {});
-		Dijkstra groundDijkstra = new Dijkstra(starting, groundRawGraph, parsedBuildingInfo.outsideEnterances);
+		Dijkstra groundDijkstra = new Dijkstra(starting, groundRawGraph, parsedEnteranceInfo.outer);
 		ret.put("ground_Nodes", groundMapInfo.getNodes());
 		ret.put("ground_Paths", groundDijkstra.getShortestPath());
 		
-		if(floor.equals("1")) {
-			Integer[] innerEnterances = parsedBuildingInfo.innerEnterances;
-			int innerEnterance = innerEnterances[groundDijkstra.indexOfDestination];
-			
-			MapInfo firstFloorMapInfo = dao.readGraphAndNodes(buildingName+"_"+floor+"F");
+		Integer[] innerEnteranceInfo = parsedEnteranceInfo.inner[groundDijkstra.indexOfDestination];
+		int innerEnterance = innerEnteranceInfo[0]; //[node#][floor#]
+		int enteranceFloor = innerEnteranceInfo[1];
+		ret.put("enteranceFloor", enteranceFloor+"");
+		
+		if(floor.equals(enteranceFloor+"")) {
+			ret.put("mapAmount", "2");
+			MapInfo firstFloorMapInfo = dao.readMapInfo(buildingName+"_"+floor+"F");
 			List<Integer[]> firstFloorRawGraph = mapper.readValue(firstFloorMapInfo.getGraph(), new TypeReference<List<Integer[]>>() {});
 			Dijkstra firstFloorDijkstra = new Dijkstra(innerEnterance, firstFloorRawGraph, destination);
-			ret.put(buildingName+"_"+floor+"F"+"_Paths", firstFloorDijkstra.getShortestPath());
-			ret.put(buildingName+"_"+floor+"F"+"_Nodes", firstFloorMapInfo.getNodes());
+			ret.put("firstPaths", firstFloorDijkstra.getShortestPath());
+			ret.put("firstNodes", firstFloorMapInfo.getNodes());
 		}else {
-			MapInfo destFloorMapInfo = dao.readGraphAndNodes(buildingName+"_"+floor+"F");
+			ret.put("mapAmount", "3");
+			MapInfo destFloorMapInfo = dao.readMapInfo(buildingName+"_"+floor+"F");
 			List<Integer[]> destFloorRawGraph = mapper.readValue(destFloorMapInfo.getGraph(), new TypeReference<List<Integer[]>>() {});
-			Dijkstra destFloorDijkstra = new Dijkstra(destination, destFloorRawGraph, parsedBuildingInfo.stairsOfSpecificFloor(Integer.parseInt(floor)));
-			ret.put(buildingName+"_"+floor+"F"+"_Paths", reverse(destFloorDijkstra.getShortestPath()));
-			ret.put(buildingName+"_"+floor+"F"+"_Nodes", destFloorMapInfo.getNodes());
+			Dijkstra destFloorDijkstra = new Dijkstra(destination, destFloorRawGraph, destFloorMapInfo.getParsedStairs(mapper));
+			ret.put("secondPaths", reverse(destFloorDijkstra.getShortestPath()));
+			ret.put("secondNodes", destFloorMapInfo.getNodes());
 			
-			Integer[] innerEnterances = parsedBuildingInfo.innerEnterances;
-			int innerEnterance = innerEnterances[groundDijkstra.indexOfDestination];
-			Integer[] firstFloorStairs = parsedBuildingInfo.stairsOfSpecificFloor(1);
+			MapInfo firstFloorMapInfo = dao.readMapInfo(buildingName+"_1F");
+			Integer[] firstFloorStairs = firstFloorMapInfo.getParsedStairs(mapper);
 			int firstFloorStair = firstFloorStairs[destFloorDijkstra.indexOfDestination];
 			
-			MapInfo firstFloorMapInfo = dao.readGraphAndNodes(buildingName+"_1F");
 			List<Integer[]> firstFloorRawGraph = mapper.readValue(firstFloorMapInfo.getGraph(), new TypeReference<List<Integer[]>>() {});
 			Dijkstra firstFloorDijkstra = new Dijkstra(innerEnterance, firstFloorRawGraph, firstFloorStair);
-			ret.put(buildingName+"_1F_Paths", firstFloorDijkstra.getShortestPath());
-			ret.put(buildingName+"_1F_Nodes", firstFloorMapInfo.getNodes());
+			ret.put("firstPaths", firstFloorDijkstra.getShortestPath());
+			ret.put("firstNodes", firstFloorMapInfo.getNodes());
 		}
 		return mapper.writeValueAsString(ret);
 	}

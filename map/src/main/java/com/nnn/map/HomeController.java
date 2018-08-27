@@ -73,7 +73,7 @@ public class HomeController {
 		return "test";
 	}
 	
-	private String mapInfoTestStory() {
+	/*private String mapInfoTestStory() {
 		MapInfo mapInfo = dao.readGraphAndNodes("테스트 지도");
 		mapInfo.setGraph("test message");
 		dao.updateGraphAndNodes(mapInfo);
@@ -83,5 +83,5 @@ public class HomeController {
 		}else {
 			return "fail";
 		}
-	}
+	}*/
 }

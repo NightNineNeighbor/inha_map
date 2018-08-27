@@ -1,5 +1,5 @@
 function sayHello(){
-	console.log("hello world!!");
+	console.log("hello world!!!");
 }
 
 function getMetaMap(map){
@@ -46,7 +46,7 @@ function printInfo(targetName, m){
 
 function ajaxFindPath(startingPoint, destinationPoint, m){
 	$.ajax({
-		url : "/map/dijkstra",
+		url : "./dijkstra",
 		type : "post",
 		data : "json=" + JSON.stringify(m.graph) + 
 				"&nodeAmount=" + String(Object.keys(m.nodes).length) + 
@@ -71,7 +71,7 @@ function ajaxFindPath(startingPoint, destinationPoint, m){
 
 function ajaxFullFindPath(startingPoint, buildingName, floor, destinationPoint, destination, m1, m2, m3){
 	$.ajax({
-		url : "/map/findpath",
+		url : "./findpath",
 		type : "post",
 		data : 	"startingPoint=" + startingPoint +
 				"&buildingName=" + buildingName +
@@ -88,25 +88,23 @@ function ajaxFullFindPath(startingPoint, buildingName, floor, destinationPoint, 
 			});
 			drawPath(groundNodes ,parsedResult['ground_Paths'], "도착" ,m1)
 			
-			var msg;
-			if(floor===1){
-				msg = destination;
-			}else{
-				msg = floor + "층으로";
-			}
-			m2 = getMetaMap(makeCustomMap(buildingName, 1, "firstFloor"));
-			drawPath(JSON.parse(parsedResult[buildingName+'_1F_Nodes']),
-					 parsedResult[buildingName+'_1F_Paths'],
-					 msg,
-					 m2)
-			if(floor===1){
-			}else{
-				m3 = getMetaMap(makeCustomMap(buildingName, floor, "destFloor"));
-				drawPath(JSON.parse(parsedResult[buildingName+'_'+floor+'F_Nodes']), 
-						 parsedResult[buildingName+'_'+floor+'F_Paths'], 
+			var msg = destination;
+			if(parsedResult['mapAmount']==="3"){
+				msg = parsedResult['enteranceFloor'] + "층으로";
+				m3 = getMetaMap(makeCustomMap(buildingName, floor, "secondFloor"));
+				drawPath(JSON.parse(parsedResult['secondNodes']), 
+						 parsedResult['secondPaths'], 
 						 destination,
 						 m3)
 			}
+			
+			m2 = getMetaMap(makeCustomMap(buildingName, 1, "firstFloor"));
+			drawPath(JSON.parse(parsedResult['firstNodes']),
+					 parsedResult['firstPaths'],
+					 msg,
+					 m2)
+					 
+			
 		}
 	});
 }
@@ -220,7 +218,12 @@ function makeMarker(name, position, m) { //마커 생성
 			name = name + m.elevators.length;
 			m.elevators.push(e.overlay.name);
 		}else{
-			m.selectableNode[e.overlay.name] = name;
+			if(m.selectableNode[e.overlay.name] === undefined){
+				m.selectableNode[e.overlay.name] = Array(name);
+			}else{
+				m.selectableNode[e.overlay.name].push(name);
+			}
+			
 		}
 		e.overlay.setIcon(getHtmlIcon(name));
 		m.circles[e.overlay.name] = makeCircle(e.overlay.name, m);
@@ -475,7 +478,7 @@ function makeCustomMap(buildingName, floor, targetDiv) {
 
 function ajaxSaveMapInfo(id, m){
 	$.ajax({
-		url : "/map/saveMapInfo",
+		url : "./saveMapInfo",
 		type : "post",
 		data : "id=" + id + 
 				"&nodes=" + JSON.stringify(m.nodes) + 
@@ -491,7 +494,7 @@ function ajaxSaveMapInfo(id, m){
 
 function ajaxLoadMapInfo(id, m){
 	$.ajax({
-		url : "/map/loadMapInfo",
+		url : "./loadMapInfo",
 		type : "post",
 		data : "id=" + id,
 		success : function(result) {

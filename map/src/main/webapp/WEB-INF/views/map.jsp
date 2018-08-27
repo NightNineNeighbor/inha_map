@@ -14,11 +14,6 @@
 <style>
 body{
 }
-::-webkit-scrollbar { -webkit-appearance: none; } 
-::-webkit-scrollbar:vertical { width: 10%; } 
-::-webkit-scrollbar:horizontal { height: 20px; } 
-::-webkit-scrollbar-thumb { background-color: rgba(0, 0, 0, .5); border-radius: 10px; border: 2px solid #ffffff; } 
-::-webkit-scrollbar-track { border-radius: 10px; background-color: #ffffff; }
 
 .autocomplete {
   /*the container must be positioned relative:*/
@@ -98,11 +93,9 @@ body{
 			var selectable = '${selectable}';
 			var building5_0F = '${building5_0F}';
 			var building5_1F = '${building5_1F}';
-			var building5_2F = '${building5_2F}';
 			selectable = JSON.parse(selectable);
 			building5_0F = JSON.parse(building5_0F);
 			building5_1F = JSON.parse(building5_1F);
-			building5_2F = JSON.parse(building5_2F);
 			var startingPoint = document.getElementById("startingPoint");
 			$.each(selectable, function(key,value){
 				a = document.createElement("OPTION");
@@ -110,30 +103,25 @@ body{
 				a.innerHTML = value;
 				startingPoint.appendChild(a);
 			});
+			
 			$.each(building5_0F, function(key,value){
-				if(value.substr(0,2)!=="계단"){
-					arr.push(value);
-					destinationPoints[value] = {buildingName:"building5",
-												"floor":0,
-												"nodeNum":key};
-				}
+				$.each(value, function(index, item){
+					arr.push(item);
+					destinationPoints[item] = {buildingName:"building5",
+													"floor":0,
+													"nodeNum":key};
+				})
 			});
+			
 			$.each(building5_1F, function(key,value){
-				if(value.substr(0,2)!=="계단"){
-					arr.push(value);
-					destinationPoints[value] = {buildingName:"building5",
-												"floor":1,
-												"nodeNum":key};
-				}
+				$.each(value, function(index, item){
+					arr.push(item);
+					destinationPoints[item] = {buildingName:"building5",
+													"floor":1,
+													"nodeNum":key};
+				})
 			});
-			$.each(building5_2F, function(key,value){
-				if(value.substr(0,2)!=="계단"){
-					arr.push(value);
-					destinationPoints[value] = {buildingName:"building5",
-												"floor":2,
-												"nodeNum":key};
-				}
-			});
+			
 			$("#loadingPage").fadeOut(1000);
 		}
 		
@@ -158,6 +146,6 @@ body{
 </div>
 <div id="ground" class="center-block" style="border: 1px solid black; height: 500px; width: 100%; margin : auto"></div>
 <div id=firstFloor class="center-block" style="border: 1px solid white; height: 500px; width: 100%; margin : auto"></div>
-<div id="destFloor" class="center-block" style="border: 1px solid white; height: 500px; width: 100%; margin : auto"></div>
+<div id="secondFloor" class="center-block" style="border: 1px solid white; height: 500px; width: 100%; margin : auto"></div>
 </body>
 </html>

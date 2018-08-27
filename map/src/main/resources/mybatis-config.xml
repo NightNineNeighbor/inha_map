@@ -3,5 +3,6 @@
 <configuration>
 	<typeAliases>
 		<typeAlias alias="mapInfo" type="com.nnn.map.vo.MapInfo"/>
+		<typeAlias alias="enteranceInfo" type="com.nnn.map.vo.EnteranceInfo"/>
 	</typeAliases>
 </configuration>

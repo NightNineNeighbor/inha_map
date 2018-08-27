@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import com.nnn.map.info.JSONBuildingInfo;
+import com.nnn.map.vo.EnteranceInfo;
 import com.nnn.map.vo.MapInfo;
 
 @Repository
@@ -18,48 +19,42 @@ public class MapInfoDao {
 		return tpl.selectOne("mapInfoMapper.test");
 	}
 	
-	public int insertGraphAndNodes(MapInfo mapInfo) {
-		return tpl.insert("mapInfoMapper.insertGraphAndNodes",mapInfo);
+	//-------------------------------MAP INFO---------------------------------//
+	public int insertMapInfo(MapInfo mapInfo) {
+		return tpl.insert("mapInfoMapper.insertMapInfo",mapInfo);
 	}
 
-	public MapInfo readGraphAndNodes(String id) {
-		return tpl.selectOne("mapInfoMapper.readGraphAndNodes",id);
+	public MapInfo readMapInfo(String id) {
+		return tpl.selectOne("mapInfoMapper.readMapInfo",id);
 	}
 	
 	public MapInfo getSelectable(String id) {
 		return tpl.selectOne("mapInfoMapper.getSelectable",id);
 	}
 	
-	public int updateGraphAndNodes(MapInfo mapInfo) {
-		return tpl.update("mapInfoMapper.updateGraphAndNodes",mapInfo);
+	public int updateMapInfo(MapInfo mapInfo) {
+		return tpl.update("mapInfoMapper.updateMapInfo",mapInfo);
 	}
 	
-	public int deleteGraphAndNodes(String id) {
-		return tpl.delete("mapInfoMapper.deleteGraphAndNodes", id);
+	public int deleteMapInfo(String id) {
+		return tpl.delete("mapInfoMapper.deleteMapInfo", id);
 	}
 
-	public String getEnterances(String string) {
-		// TODO Auto-generated method stub
-		return "[7,8]";
+	//-------------------------------ENTERANCE INFO----------------------------//
+	public int insertEnteranceInfo(EnteranceInfo enteranceInfo) {
+		return tpl.insert("mapInfoMapper.insertEnteranceInfo",enteranceInfo);
 	}
 
-	public String getStairs(){
-		return "[[5,1],[7,6]]";
-				
+	public EnteranceInfo readEnteranceInfo(String id) {
+		return tpl.selectOne("mapInfoMapper.readEnteranceInfo",id);
 	}
 	
-	public int getFloor(String destinationPoint) {
-		// TODO Auto-generated method stub
-		return 0;
+	public int updateEnteranceInfo(EnteranceInfo enteranceInfo) {
+		return tpl.update("mapInfoMapper.updateEnteranceInfo",enteranceInfo);
 	}
-
-	public JSONBuildingInfo getBuildingInfo(String buildingName) {
-		JSONBuildingInfo o = new JSONBuildingInfo();
-		o.outsideEnterances = "[28,32]";
-		o.innerEnterances = "[0,20]";
-		o.stairs = "[[2,1,0],[3,14,21,22],[0,5,7,8]]";
-		o.elevators = "[]";
-		return o;
+	
+	public int deleteEnteranceInfo(String id) {
+		return tpl.delete("mapInfoMapper.deleteEnteranceInfo", id);
 	}
 	
 	

@@ -5,12 +5,12 @@
 		select id from test;
 	</select>
 
-	<insert id="insertGraphAndNodes" parameterType="mapInfo" >
+	<insert id="insertMapInfo" parameterType="mapInfo" >
 		insert into map_info_table(id, graph, nodes, selectable_nodes, stairs, elevators)
 		values(#{id}, #{graph}, #{nodes}, #{selectableNodes}, #{stairs}, #{elevators})
 	</insert>
 	
-	<select id="readGraphAndNodes" parameterType="string" resultType="mapInfo">
+	<select id="readMapInfo" parameterType="string" resultType="mapInfo">
 		select id, nodes, graph, selectable_nodes selectableNodes, stairs, elevators from map_info_table where id=#{id}
 	</select>
 	
@@ -18,21 +18,33 @@
 		select selectable_nodes selectableNodes from map_info_table where id=#{id}
 	</select>
 	
-	<update id="updateGraphAndNodes" parameterType="mapInfo">
+	<update id="updateMapInfo" parameterType="mapInfo">
 		update map_info_table 
 		set graph=#{graph}, nodes=#{nodes},selectable_nodes=#{selectableNodes}, 
 			stairs=#{stairs}, elevators=#{elevators} 
 		where id=#{id}
 	</update>
 	
-	<delete id="deleteGraphAndNodes" parameterType="string">
+	<delete id="deleteMapInfo" parameterType="string">
 		delete from map_info_table where id = #{id}
 	</delete>
 	
-	<!-- <resultMap id="mapInfoResultMap" type="mapInfo">
-		<id property="id" column="ID"/>
-		<result property="graph" column="GRAPH" jdbcType="CLOB" javaType="java.lang.String" />
-		<result property="nodes" column="NODES" jdbcType="CLOB" javaType="java.lang.String" />
-		<result property="selectableNodes" column="SELECTABLE_NODES" jdbcType="CLOB" javaType="java.lang.String" />
-	</resultMap> -->
+	<insert id="insertEnteranceInfo" parameterType="enteranceInfo">
+		insert into enterance_info(id, outer_enterance, inner_enterance) 
+		values(#{id}, #{outerEnterance}, #{innerEnterance})
+	</insert>
+	
+	<select id="readEnteranceInfo" resultType="enteranceInfo">
+		select id, inner_enterance innerEnterance, outer_enterance outerEnterance from enterance_info where id=#{id}
+	</select>
+	
+	<update id="updateEnteranceInfo" parameterType="enteranceInfo">
+		update enterance_info 
+		set id=#{id}, inner_enterance=#{innerEnterance},outer_enterance=#{outerEnterance}
+		where id=#{id}
+	</update>
+	
+	<delete id="deleteEnteranceInfo" parameterType="string">
+		delete from enterance_info where id = #{id}
+	</delete>
 </mapper>

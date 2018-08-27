@@ -18,6 +18,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nnn.map.dao.MapInfoDao;
 import com.nnn.map.service.MapService;
+import com.nnn.map.vo.EnteranceInfo;
 import com.nnn.map.vo.MapInfo;
 
 @Controller
@@ -40,9 +41,6 @@ public class MapController {
 		model.addAttribute("building5_1F",
 				dao.getSelectable("building5_1F")
 						.getSelectableNodes());
-		model.addAttribute("building5_2F",
-				dao.getSelectable("building5_2F")
-						.getSelectableNodes());
 		return "map";
 	}
 	
@@ -60,7 +58,8 @@ public class MapController {
 	@PostMapping("/saveMapInfo")
 	public ResponseEntity<String> saveGraphAndNodes(String id, String nodes, String graph, String selectableNodes, String stairs, String elevators){
 		MapInfo mapInfo = new MapInfo(id, graph, nodes, selectableNodes, stairs, elevators);
-		int isInsertClear = dao.insertGraphAndNodes(mapInfo);
+		System.out.println("DEBUG" + mapInfo);
+		int isInsertClear = dao.insertMapInfo(mapInfo);
 		String inserStatus = "";
 		if(isInsertClear == 1 ) {
 			inserStatus = "OK";
@@ -72,9 +71,21 @@ public class MapController {
 	
 	@RequestMapping(value = "/loadMapInfo",method=RequestMethod.POST, produces="text/plan;charset=UTF-8")
 	public ResponseEntity<String> loadMapInfo(String id) throws JsonProcessingException{
-		MapInfo mapInfo = dao.readGraphAndNodes(id);
-		System.out.println(mapInfo);		//DEBUG
-		System.out.println(mapper.writeValueAsString(mapInfo));	//DEBUG
+		MapInfo mapInfo = dao.readMapInfo(id);
 		return new ResponseEntity<String>( mapper.writeValueAsString(mapInfo) , HttpStatus.OK);
+	}
+	
+	@RequestMapping(value = "/saveEnteranceInfo",method=RequestMethod.POST, produces="text/plan;charset=UTF-8")
+	public ResponseEntity<String> saveEnteranceInfo(String id, String outer, String inner) throws JsonProcessingException{
+		EnteranceInfo enteranceInfo = new EnteranceInfo(id, outer, inner);
+		dao.deleteEnteranceInfo(id);
+		dao.insertEnteranceInfo(enteranceInfo);
+		return new ResponseEntity<String>( "ok" , HttpStatus.OK);
+	}
+	
+	@RequestMapping(value = "/getEnteranceInfo",method=RequestMethod.POST, produces="text/plan;charset=UTF-8")
+	public ResponseEntity<String> saveEnteranceInfo(String id) throws JsonProcessingException{
+		EnteranceInfo enteranceInfo = dao.readEnteranceInfo(id);
+		return new ResponseEntity<String>( mapper.writeValueAsString(enteranceInfo) , HttpStatus.OK);
 	}
 }
