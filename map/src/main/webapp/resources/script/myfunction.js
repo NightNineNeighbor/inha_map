@@ -2,7 +2,7 @@ function sayHello(){
 	console.log("hello world!!!");
 }
 
-function getMetaMap(map){
+function getMetaMap(map, isBuilding){
 	var object = {};
 	object["map"] = map;
 	object["nextMarkerName"] = 0;
@@ -21,6 +21,7 @@ function getMetaMap(map){
 	object["prevY"] = 0;
 	object["path"] = {};
 	object["pl"] = {};
+	object["isBuilding"] = isBuilding;
 	return object
 }
 
@@ -69,7 +70,7 @@ function ajaxFindPath(startingPoint, destinationPoint, m){
 	});
 }
 
-function ajaxFullFindPath(startingPoint, buildingName, floor, destinationPoint, destination, m1, m2, m3){
+function ajaxFullFindPath(startingPoint, startingPointName, buildingName, floor, destinationPoint, destination, m1, m2, m3){
 	$.ajax({
 		url : "./findpath",
 		type : "post",
@@ -81,7 +82,6 @@ function ajaxFullFindPath(startingPoint, buildingName, floor, destinationPoint, 
 			var parsedResult = JSON.parse(result);
 			
 			var groundNodes = JSON.parse(parsedResult['ground_Nodes'])
-			console.log(groundNodes[startingPoint]);
 			m1.map = new naver.maps.Map('ground', {
 				center : groundNodes[startingPoint],
 				zoom : 12
@@ -90,21 +90,38 @@ function ajaxFullFindPath(startingPoint, buildingName, floor, destinationPoint, 
 			
 			var msg = destination;
 			if(parsedResult['mapAmount']==="3"){
-				msg = parsedResult['enteranceFloor'] + "층으로";
-				m3 = getMetaMap(makeCustomMap(buildingName, floor, "secondFloor"));
+				msg = floor + "층으로";
+				m3 = getMetaMap(makeCustomMap(buildingName, floor, "secondMap"), true);
 				drawPath(JSON.parse(parsedResult['secondNodes']), 
 						 parsedResult['secondPaths'], 
 						 destination,
-						 m3)
+						 m3);
+				var s = parsedResult['secondPaths'][0]
+				console.log(JSON.parse(parsedResult['secondNodes'])[s]);
+				m3.map.setCenter(JSON.parse(parsedResult['secondNodes'])[s]);
 			}
 			
-			m2 = getMetaMap(makeCustomMap(buildingName, 1, "firstFloor"));
+			
+			m2 = getMetaMap(makeCustomMap(buildingName, 1, "firstMap"), true);
 			drawPath(JSON.parse(parsedResult['firstNodes']),
 					 parsedResult['firstPaths'],
 					 msg,
-					 m2)
-					 
+					 m2);
+			var s = parsedResult['firstPaths'][0]
+			console.log(JSON.parse(parsedResult['firstNodes'])[s]);
+			m2.map.setCenter(JSON.parse(parsedResult['firstNodes'])[s]);
 			
+			$("#groundNav").html("&nbsp");
+			$("#firstMapNav").html("&nbsp");
+			$("#secondMapNav").html("&nbsp");
+			$("#groundNav").text(startingPointName +"에서 " + buildingName + "으로");
+			$("#firstMapNav").text( buildingName+ "입구에서 " + msg);
+			if(parsedResult['mapAmount']==="3"){
+				$("#secondMapNav").text( floor+ "층에서 " + destination + "으로");
+			}
+			$("#ground").show();
+			$("#firstMap").hide();
+			$("#secondMap").hide();
 		}
 	});
 }
@@ -127,12 +144,11 @@ function drawPath(nodes, path, message, m){
 	makeHtmlIcon(message, m.nodes[path[path.length-1]], m);
 }
 
-
 function makeHtmlIcon(message, position, m){
 	new naver.maps.Marker({
 	    position: position,
 	    map: m.map,
-	    title: 'Green',
+	    title: message,
 	    icon: {
 	        content:'<div style="background-color:white;border: 1px solid black;">'+message+'</div>',
 	        size: new naver.maps.Size(22, 35),
@@ -146,23 +162,6 @@ function showSelectableList( targetName , m ){
 	$.each(m.selectableNode, function(key, value) {
 		$("#" + targetName).append("[ " + key + ", " + value + " ] ");
 	});
-}
-
-function mapToggle(m){
-	if (m.markers[0].map === m.map) {
-		toggleGraphNode(null, m);
-	} else {
-		toggleGraphNode(m.map, m);
-	}
-}
-
-function toggleGraphNode(param, m) {
-	$.each(m.markers, function(key, value) {
-		value.setMap(param);
-	})
-	for (var i = 0, ii = m.polylines.length; i < ii; i++) { //polyline 모두 삭제
-		m.polylines[i].setMap(param);
-	}
 }
 
 function makeMarker(name, position, m) { //마커 생성
@@ -195,11 +194,18 @@ function makeMarker(name, position, m) { //마커 생성
 		} else {
 			m.path.push(e.overlay.getPosition());
 			
+			var factor;
+			if(m.isBuilding){
+				factor = 1;
+			}else{
+				factor = 100000;
+			}
+			
 				//피타고라스
-			var distance = Math.pow(m.prevX * 100000
-					- e.overlay.position.x * 100000, 2)
-					+ Math.pow(m.prevY * 100000 - e.overlay.position.y
-							* 100000, 2);
+			var distance = Math.pow(m.prevX * factor
+					- e.overlay.position.x * factor, 2)
+					+ Math.pow(m.prevY * factor - e.overlay.position.y
+							* factor, 2);
 			distance = Math.sqrt(distance);
 			distance = Math.floor(distance);
 				//그래프 생성2
@@ -223,7 +229,6 @@ function makeMarker(name, position, m) { //마커 생성
 			}else{
 				m.selectableNode[e.overlay.name].push(name);
 			}
-			
 		}
 		e.overlay.setIcon(getHtmlIcon(name));
 		m.circles[e.overlay.name] = makeCircle(e.overlay.name, m);
@@ -362,71 +367,6 @@ function makeCircle(name, m){
 	});
 }
 
-//빌딩 그리기
-function makeBuilding(controlObject,targetDiv) {
-	var HOME_PATH = './resources';
-	var tileSize = new naver.maps.Size(256, 256),
-	proj = {
-		fromCoordToPoint : function(coord) {
-			var pcoord = coord.clone();
-
-			if (coord instanceof naver.maps.LatLng) {
-				pcoord = new naver.maps.Point(coord.lng(), coord.lat());
-			}
-			return pcoord.div(tileSize.width, tileSize.height);
-		},
-
-		fromPointToCoord : function(point) {
-			return point.clone().mul(tileSize.width, tileSize.height);
-		}
-	}, 
-	getMapType = function(floor) {
-		var commonOptions = {
-			name : '',
-			minZoom : 0,
-			maxZoom : 4,
-			tileSize : tileSize,
-			projection : proj,
-			repeatX : false,
-			tileSet : '',
-			vendor : '\xa9 NAVER Corp.',
-			uid : ''
-		}, 
-		mapTypeOptions = $.extend({}, commonOptions, {
-			name : floor,
-			tileSet : HOME_PATH
-					+ '/tiles/gf-{floor}/{z}/{x}-{y}.png'.replace(
-							'{floor}', floor.toLowerCase()),
-			uid : 'naver:greenfactory:' + floor
-		});
-
-		return new naver.maps.ImageMapType(mapTypeOptions);
-	};
-
-	controlObject = new naver.maps.Map(targetDiv, {
-		center : new naver.maps.Point(128, 128),
-		zoom : 2,
-		background : '#FFFFFF',
-		mapTypes : new naver.maps.MapTypeRegistry({
-			'+1F' : getMapType('1F'),
-			'+2F' : getMapType('2F'),
-			'+4F' : getMapType('4F'),
-			'+5F' : getMapType('5F'),
-		}),
-		mapTypeId : '+1F',
-		mapTypeControl : true,
-		mapTypeControlOptions : {
-			mapTypeIds : [ '+1F', '+2F', '+4F', '+5F' ],
-			position : naver.maps.Position.BOTTOM_CENTER,
-			style : naver.maps.MapTypeControlStyle.BUTTON
-		},
-		zoomControl : true,
-		zoomControlOptions : {
-			position : naver.maps.Position.TOP_RIGHT
-		}
-	});
-}
-
 function makeCustomMap(buildingName, floor, targetDiv) {
 	var imgPath = './resources/' + buildingName + "/" + floor + "F.jpg";
 	
@@ -499,7 +439,9 @@ function ajaxLoadMapInfo(id, m){
 		data : "id=" + id,
 		success : function(result) {
 			var info = JSON.parse(result);
-			loadNode(info.nodes, info.graph, info.selectableNodes, info.stairs, info.elevators, m);
+			if(info!==null){
+				loadNode(info.nodes, info.graph, info.selectableNodes, info.stairs, info.elevators, m);
+			}
 		}
 		
 	});
@@ -561,7 +503,3 @@ function autocomplete(inp, arr) {
       closeAllLists(e.target);
    });
 }
-
-
-
-

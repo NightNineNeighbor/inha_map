@@ -1,12 +1,9 @@
 package com.nnn.map.dao;
 
-import java.util.ArrayList;
-
 import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-import com.nnn.map.info.JSONBuildingInfo;
 import com.nnn.map.vo.EnteranceInfo;
 import com.nnn.map.vo.MapInfo;
 

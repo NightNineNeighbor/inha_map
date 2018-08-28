@@ -41,7 +41,7 @@ public class MapService {
 		ret.put("ground_Paths", groundDijkstra.getShortestPath());
 		
 		Integer[] innerEnteranceInfo = parsedEnteranceInfo.inner[groundDijkstra.indexOfDestination];
-		int innerEnterance = innerEnteranceInfo[0]; //[node#][floor#]
+		int innerEnterance = innerEnteranceInfo[0]; //innerEnteranceFormat -> [node#][floor#]
 		int enteranceFloor = innerEnteranceInfo[1];
 		ret.put("enteranceFloor", enteranceFloor+"");
 		

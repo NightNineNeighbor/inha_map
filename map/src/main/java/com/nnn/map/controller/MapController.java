@@ -30,7 +30,7 @@ public class MapController {
 	@Autowired
 	ObjectMapper mapper;
 
-	@GetMapping("/map")
+	@GetMapping("/")
 	public String map(Model model){
 		model.addAttribute("selectable",
 							dao.getSelectable("ground")
@@ -58,15 +58,9 @@ public class MapController {
 	@PostMapping("/saveMapInfo")
 	public ResponseEntity<String> saveGraphAndNodes(String id, String nodes, String graph, String selectableNodes, String stairs, String elevators){
 		MapInfo mapInfo = new MapInfo(id, graph, nodes, selectableNodes, stairs, elevators);
-		System.out.println("DEBUG" + mapInfo);
-		int isInsertClear = dao.insertMapInfo(mapInfo);
-		String inserStatus = "";
-		if(isInsertClear == 1 ) {
-			inserStatus = "OK";
-		}else {
-			inserStatus = "FAIL";
-		}
-		return new ResponseEntity<String>( inserStatus , HttpStatus.OK);
+		dao.deleteMapInfo(id);
+		dao.insertMapInfo(mapInfo);
+		return new ResponseEntity<String>( "" , HttpStatus.OK);
 	}
 	
 	@RequestMapping(value = "/loadMapInfo",method=RequestMethod.POST, produces="text/plan;charset=UTF-8")

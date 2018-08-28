@@ -13,6 +13,7 @@
 <script src="./resources/script/myfunction.js" type="text/javascript"></script>
 <style>
 body{
+	font-size: 250%;
 }
 
 .autocomplete {
@@ -42,6 +43,10 @@ body{
   background-color: #e9e9e9; 
 }
 
+.mapNav:hover{
+	background-color: #e9e9e9; 
+}
+
 #loadingPage {
 	width: 100%;
 	height: 100%;
@@ -64,18 +69,14 @@ body{
 </style>
 <script>
 	window.onload = function() {
-		
 		var destinationPoints = {};
 		var arr = [];
-		inite();
-		
-		var ground = new naver.maps.Map('ground', {
-			center : new naver.maps.LatLng(37.451001, 126.656370),
-			zoom : 12
-		});
-		var metaMap = getMetaMap(ground);
+		var ground;
+		var metaMap = getMetaMap(ground, false);
 		var metaMapFirstFloor ;
 		var metaMapDestFloor;
+		var first = true;
+		inite();
 		
 		document.getElementById("findFullPath").addEventListener("click",function() {
 			var destination = $("#destinationPoint").val();
@@ -83,13 +84,38 @@ body{
 			var floor = t["floor"];
 			var buildingName = t["buildingName"];
 			var destinationPoint = t["nodeNum"];
-			ajaxFullFindPath($("#startingPoint").val(), buildingName, floor, destinationPoint, destination,
+			var startingPointName = $("#startingPoint").find("option[value='" + $("#startingPoint").val() + "']").text()
+			
+			ajaxFullFindPath($("#startingPoint").val(), startingPointName, buildingName, floor, destinationPoint, destination,
 					metaMap, metaMapFirstFloor, metaMapDestFloor);
+		});
+		
+		document.getElementById("groundNav").addEventListener("click",function() {
+			$("#ground").show();
+			$("#firstMap").hide();
+			$("#secondMap").hide();
+		});
+		
+		document.getElementById("firstMapNav").addEventListener("click",function() {
+			$("#ground").hide();
+			$("#firstMap").show();
+			$("#secondMap").hide();
+		});
+		
+		document.getElementById("secondMapNav").addEventListener("click",function() {
+			$("#ground").hide();
+			$("#firstMap").hide();
+			$("#secondMap").show();
 		});
 		
 		autocomplete(document.getElementById("destinationPoint"), arr);
 		
 		function inite(){
+			ground = new naver.maps.Map('ground', {
+				center : new naver.maps.LatLng(37.4492592, 126.6543461),
+				zoom : 12
+			});
+			
 			var selectable = '${selectable}';
 			var building5_0F = '${building5_0F}';
 			var building5_1F = '${building5_1F}';
@@ -122,30 +148,53 @@ body{
 				})
 			});
 			
+			var h = $(window).height() - $("#header").height();
+			$("#ground").css("height",h);
+			$("#firstMap").css("height",h);
+			$("#secondMap").css("height",h);
+			
+			$("#ground").show();
+			$("#firstMap").hide();
+			$("#secondMap").hide();
+			
 			$("#loadingPage").fadeOut(1000);
 		}
 		
+		function clearDiv(){
+			if(first === false){
+				$("#ground").empty();
+				$("#firstMap").empty()
+				$("#secondMap").empty()
+			}
+			first = false;
+		}
 	};
 </script>
 </head>
-<body id="body">
+<body>
 <div id="loadingPage">
 	<div id="loadingMessage">인하지도</div>
 </div>
-<div id="header" style="text-align: center;">
-</div>
-<div style="width:500px; margin:0 auto;">
-출발 지점 : <select id="startingPoint"></select>
-</div>
+<div id="header">
+	<div>
+	출발 지점 : <select id="startingPoint"></select>
+	</div>
 
-<div style="width:500px; margin:0 auto;">
-<div class="autocomplete" >
-	도착 지점 : <input id = destinationPoint type = "text">
-	<button id="findFullPath">길찾기!</button>
+	<div>
+	<div class="autocomplete" >
+		도착 지점 : <input id = destinationPoint type = "text">
+		<button id="findFullPath">길찾기!</button>
+	</div>
+	</div>
+	<div id="groundNav" class="mapNav">&nbsp</div>
+	<div id="firstMapNav" class="mapNav">&nbsp</div>
+	<div id="secondMapNav" class="mapNav">&nbsp</div>
 </div>
+<div id="ground" style="border: 1px solid black;  width: 100%;"></div>
+<div id="firstMap" style="border: 1px solid white; height: 1000px; width: 100%;" ></div>
+<div id="secondMap" style="border: 1px solid white; height: 1000px; width: 100%;"></div>
+<div id="fotter">
+<h1>FOOTER INFO</h1>
 </div>
-<div id="ground" class="center-block" style="border: 1px solid black; height: 500px; width: 100%; margin : auto"></div>
-<div id=firstFloor class="center-block" style="border: 1px solid white; height: 500px; width: 100%; margin : auto"></div>
-<div id="secondFloor" class="center-block" style="border: 1px solid white; height: 500px; width: 100%; margin : auto"></div>
 </body>
 </html>

@@ -5,7 +5,7 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>지도1233</title>
+<title>지도 업로드</title>
 <script type="text/javascript"
 	src="https://openapi.map.naver.com/openapi/v3/maps.js?clientId=nVEUh5PrMsL3BXJq_8Pl&submodules=geocoder"></script>
 <script
@@ -45,8 +45,9 @@
 				type : "post",
 				data : "id=" + mapImage,
 				success : function(result) {
-					console.log(result);
-					alert();
+					var p = JSON.parse(result);
+					inner = p.innerEnterance;
+					outer = p.outerEnterance;
 				}
 			});
 			
@@ -56,32 +57,33 @@
 					center : new naver.maps.LatLng(37.451001, 126.656370),
 					zoom : 12
 				});
-				metaMap = getMetaMap(map)
+				metaMap = getMetaMap(map, false)
 				ajaxLoadMapInfo(mapImage, metaMap);
 			}else if(floor===1){
 				map = makeCustomMap(mapImage, 1, "mapDiv");
-				metaMap = getMetaMap(map);
+				metaMap = getMetaMap(map, true);
 				ajaxLoadMapInfo(mapImage+"_1F", metaMap);
 			}else{
 				map = makeCustomMap(mapImage, floor, "mapDiv");
-				metaMap = getMetaMap(map);
+				metaMap = getMetaMap(map, true);
 				ajaxLoadMapInfo(mapImage +"_"+floor+"F", metaMap);
 				
 				refMap = makeCustomMap(mapImage, 1, "refMapDiv");
-				refMetaMap = getMetaMap(refMap);
+				refMetaMap = getMetaMap(refMap, true);
 				ajaxLoadMapInfo(mapImage+"_1F", refMetaMap);
-								
-				metaMap.stairs = Array( refMetaMap.stairs.length );
-				metaMap.elevators = Array( refMetaMap.elevators.length );
 			}
 			
 			naver.maps.Event.addListener(metaMap.map, 'click', function(e) {
+				if(metaMap.isBuilding){
+					e.coord.floor();
+				}
+				console.log(metaMap);
 				makeMarker(metaMap.nextMarkerName++, e.coord, metaMap);
 			});
 		})
 		
 		document.getElementById("save").addEventListener("click",function() {
-			ajaxSaveMapInfo(mapImage +"_"+floor+"F", metaMap)
+			ajaxSaveMapInfo(mapImage +"_"+floor+"F", metaMap);
 		});
 		
 		document.getElementById("printInfo").addEventListener("click",function() {
@@ -90,6 +92,10 @@
 		
 		document.getElementById("setStairs").addEventListener("click",function() {
 			setStairs();
+		});
+		
+		document.getElementById("setElevator").addEventListener("click",function() {
+			setElevator();
 		});
 		
 		document.getElementById("setEnterance").addEventListener("click",function() {
@@ -121,7 +127,10 @@
 		
 		function setStairs(){
 			metaMap.stairs[ $("#stairNumber").val() ] = $("#targetNode").val();
-			alert(metaMap.stairs[ $("#stairNumber").val() ]);
+		}
+		
+		function setElevator(){
+			metaMap.stairs[ $("#elevatorNumber").val() ] = $("#elvTargetNode").val();
 		}
 		
 		function setEnterance(){
@@ -130,6 +139,44 @@
 			arr.push($("#innerEnterance").val());
 			arr.push(floor);
 			inner.push(arr);
+		}
+		
+		document.getElementById("xFiveAndTen").addEventListener("click",function() {
+			var startNode = $("#startNode").val();
+			var endNode = $("#endNode").val();
+			var standardNode = $("#standardNode").val();
+			fiveAndTen(startNode, endNode, standardNode, true, metaMap);
+			console.log(metaMap);
+		});
+		
+		document.getElementById("yFiveAndTen").addEventListener("click",function() {
+			var startNode = $("#startNode").val();
+			var endNode = $("#endNode").val();
+			var standardNode = $("#standardNode").val();
+			fiveAndTen(startNode, endNode, standardNode, false, metaMap);
+			console.log(metaMap);
+		});
+		
+		function fiveAndTen(startNode, endNode, standardNode, isX, m){
+			var standard;
+			
+			if(isX){
+				standard = m.nodes[standardNode].x;
+			}else{
+				standard = m.nodes[standardNode].y;
+			}
+			
+			for(var i = Number(startNode); i <= Number(endNode); i++){
+				if(isX){
+					m.nodes[i].x = standard;
+					m.markers[i].setPosition(
+							new naver.maps.Point(standard, m.nodes[i].y))
+				}else{
+					m.nodes[i].y = standard;
+					m.markers[i].setPosition(
+							new naver.maps.Point(m.nodes[i].x, standard))
+				}
+			}
 		}
 	};
 </script>
@@ -147,6 +194,12 @@
 		<button id="setStairs">계단 세팅</button>
 	</div>
 	<div>
+		엘베
+		<input type="number" id="elevatorNumber" style="width: 50px;">번을
+		<input type="number" id="elvTargetNode" style="width: 50px;">번 노드와 연동
+		<button id="setElevator">엘베 세팅</button>
+	</div>
+	<div>
 		바깥 입구
 		<input type="number" id="outerEnterance" style="width: 50px;">번과
 		<input type="number" id="innerEnterance" style="width: 50px;">번 노드를 연동
@@ -154,6 +207,13 @@
 		<button id="readEnterance">출입구 정보 출력</button>
 		<button id="resetEnterance">출입구 정보 리셋</button>
 		<button id="saveEnterance">출입구 정보 저장</button>
+	</div>
+	<div>
+		<input type="number" id="startNode" style="width: 50px;">
+		<input type="number" id="endNode" style="width: 50px;">
+		<input type="number" id="standardNode" style="width: 50px;">
+		<button id="xFiveAndTen" style="width: 50px;">세로</button>
+		<button id="yFiveAndTen" style="width: 50px;">가로</button>
 	</div>
 	<button id="printInfo">맵 정보 표시</button>
 	<div id="mapInfo"></div>
