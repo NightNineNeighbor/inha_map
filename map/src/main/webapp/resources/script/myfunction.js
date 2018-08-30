@@ -322,11 +322,14 @@ function loadNode(nodesInfo, graphInfo, selectableInfo, stairs, elevators,  m) {
 		m.markers[key].setZIndex(100);
 	})
 	
-	m.stairs = JSON.parse(stairs)
+	m.stairs = JSON.parse(stairs);
+	console.log(m.stairs);
 	$.each(m.stairs, function(index, item) {
-		makeCircle(item, m);
-		m.markers[item].setIcon(getHtmlIcon("계단"+index));
-		m.markers[item].setZIndex(100);
+		if(item!=="-1"){
+			makeCircle(item, m);
+			m.markers[item].setIcon(getHtmlIcon("계단"+index));
+			m.markers[item].setZIndex(100);
+		}
 	})
 	
 	m.elevators = JSON.parse(elevators)
@@ -352,7 +355,7 @@ function loadNode(nodesInfo, graphInfo, selectableInfo, stairs, elevators,  m) {
 }
 
 function getHtmlIcon(name){
-	return {content:'<div style="background-color:white;border: 1px solid black;">'+name+'</div>',
+	return {content:'<div style="background-color:white;border: 1px solid black;opacity:0.5;">'+name+'</div>',
 	 size: new naver.maps.Size(22, 35),
 	 anchor: new naver.maps.Point(11, 30)};
 }

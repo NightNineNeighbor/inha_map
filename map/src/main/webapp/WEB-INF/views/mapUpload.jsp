@@ -58,7 +58,7 @@
 					zoom : 12
 				});
 				metaMap = getMetaMap(map, false)
-				ajaxLoadMapInfo(mapImage, metaMap);
+				ajaxLoadMapInfo(mapImage+"_1F", metaMap);
 			}else if(floor===1){
 				map = makeCustomMap(mapImage, 1, "mapDiv");
 				metaMap = getMetaMap(map, true);
@@ -83,6 +83,11 @@
 		})
 		
 		document.getElementById("save").addEventListener("click",function() {
+			$.each(metaMap.stairs, function(index, item) {
+				if(item === undefined){
+					metaMap.stairs[index] = -1;
+				}
+			});
 			ajaxSaveMapInfo(mapImage +"_"+floor+"F", metaMap);
 		});
 		
@@ -157,6 +162,13 @@
 			console.log(metaMap);
 		});
 		
+		document.getElementById("toggle").addEventListener("click",function() {
+			$.each(metaMap.markers, function(key, value) {
+				value.setMap(null);
+			});
+			
+		});
+		
 		function fiveAndTen(startNode, endNode, standardNode, isX, m){
 			var standard;
 			
@@ -216,6 +228,7 @@
 		<button id="yFiveAndTen" style="width: 50px;">가로</button>
 	</div>
 	<button id="printInfo">맵 정보 표시</button>
+	<button id="toggle">마커 끄기</button>
 	<div id="mapInfo"></div>
 	<div id="refMapDiv" style="border: 1px solid black; height: 500px; width: 100%;"></div>
 </body>

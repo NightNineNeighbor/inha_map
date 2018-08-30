@@ -34,7 +34,7 @@ public class MapService {
 		ParsedEnteranceInfo parsedEnteranceInfo = 
 				new ParsedEnteranceInfo(dao.readEnteranceInfo(buildingName), mapper);
 		
-		MapInfo groundMapInfo = dao.readMapInfo("ground");
+		MapInfo groundMapInfo = dao.readMapInfo("ground_1F");
 		List<Integer[]> groundRawGraph = mapper.readValue(groundMapInfo.getGraph(), new TypeReference<List<Integer[]>>() {});
 		Dijkstra groundDijkstra = new Dijkstra(starting, groundRawGraph, parsedEnteranceInfo.outer);
 		ret.put("ground_Nodes", groundMapInfo.getNodes());

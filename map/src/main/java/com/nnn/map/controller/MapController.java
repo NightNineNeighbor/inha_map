@@ -33,13 +33,25 @@ public class MapController {
 	@GetMapping("/")
 	public String map(Model model){
 		model.addAttribute("selectable",
-							dao.getSelectable("ground")
+							dao.getSelectable("ground_1F")
 									.getSelectableNodes());
 		model.addAttribute("building5_0F",
 				dao.getSelectable("building5_0F")
 						.getSelectableNodes());
 		model.addAttribute("building5_1F",
 				dao.getSelectable("building5_1F")
+						.getSelectableNodes());
+		model.addAttribute("building5_2F",
+				dao.getSelectable("building5_2F")
+						.getSelectableNodes());
+		model.addAttribute("building5_3F",
+				dao.getSelectable("building5_3F")
+						.getSelectableNodes());
+		model.addAttribute("building5_4F",
+				dao.getSelectable("building5_4F")
+						.getSelectableNodes());
+		model.addAttribute("building5_5F",
+				dao.getSelectable("building5_5F")
 						.getSelectableNodes());
 		return "map";
 	}
