@@ -182,6 +182,11 @@ select:focus {
 			hardCoding.push(JSON.parse('${building5_4F}'));
 			hardCoding.push(JSON.parse('${building5_5F}'));
 			
+			$.each(hardCoding, function(index, item){
+				myParse(item, index);
+			});
+			
+			
 			selectable = JSON.parse(selectable);
 			var startingPoint = document.getElementById("startingPoint");
 			$.each(selectable, function(key,value){
@@ -193,8 +198,13 @@ select:focus {
 				});
 			});
 			
+			var hardCoding = [];
+			hardCoding.push(JSON.parse('${building2_0F}'));
+			hardCoding.push(JSON.parse('${building2_1F}'));
+			hardCoding.push(JSON.parse('${building2_2F}'));
+			
 			$.each(hardCoding, function(index, item){
-				myParse(item, index);
+				myParse2(item, index);
 			});
 			
 			var h1 = $("#h1").innerHeight();
@@ -272,6 +282,17 @@ select:focus {
 				$.each(value, function(index, item){
 					arr.push(item);
 					destinationPoints[item] = {buildingName:"building5",
+													"floor":i,
+													"nodeNum":key};
+				});
+			});
+		}
+		
+		function myParse2(arg, i){
+			$.each(arg, function(key,value){
+				$.each(value, function(index, item){
+					arr.push(item);
+					destinationPoints[item] = {buildingName:"building2",
 													"floor":i,
 													"nodeNum":key};
 				});

@@ -46,8 +46,8 @@
 				data : "id=" + mapImage,
 				success : function(result) {
 					var p = JSON.parse(result);
-					inner = p.innerEnterance;
-					outer = p.outerEnterance;
+					inner = JSON.parse(p.innerEnterance);
+					outer = JSON.parse(p.outerEnterance);
 				}
 			});
 			
@@ -135,7 +135,7 @@
 		}
 		
 		function setElevator(){
-			metaMap.stairs[ $("#elevatorNumber").val() ] = $("#elvTargetNode").val();
+			metaMap.elevators[ $("#elevatorNumber").val() ] = $("#elvTargetNode").val();
 		}
 		
 		function setEnterance(){

@@ -53,6 +53,16 @@ public class MapController {
 		model.addAttribute("building5_5F",
 				dao.getSelectable("building5_5F")
 						.getSelectableNodes());
+		
+		model.addAttribute("building2_0F",
+				dao.getSelectable("building2_0F")
+						.getSelectableNodes());
+		model.addAttribute("building2_1F",
+				dao.getSelectable("building2_1F")
+						.getSelectableNodes());
+		model.addAttribute("building2_2F",
+				dao.getSelectable("building2_2F")
+						.getSelectableNodes());
 		return "map";
 	}
 	
