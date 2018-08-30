@@ -9,14 +9,14 @@
 <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
 <link href="https://fonts.googleapis.com/css?family=Noto+Sans:400,700" rel="stylesheet">
 <script src="//code.jquery.com/jquery.min.js"></script>
-<script src="//maxcdn.bootstrapcdn.com/bootstrap/latest/js/bootstrap.min.js"></script>
-<script type="text/javascript" src="https://openapi.map.naver.com/openapi/v3/maps.js?clientId=nVEUh5PrMsL3BXJq_8Pl&submodules=geocoder"></script>
+<script type="text/javascript" src="https://openapi.map.naver.com/openapi/v3/maps.js?clientId=nVEUh5PrMsL3BXJq_8Pl&submodules=panorama"></script>
 <script src="./resources/script/myfunction.js" type="text/javascript"></script>
 <style>
 @import url(//fonts.googleapis.com/earlyaccess/notosanskannada.css);
 *{
 	font-family: 'Noto Sans KR', 'Noto Sans', sans-serif;
 	font-weight: 400;
+	font-size:20px;
 }
 
 input{
@@ -50,7 +50,7 @@ select:focus {
 }
 
 .mint{
-	background-color: #40d0a3;
+	background-color: #5ce7bd;
 }
 .white{
 	background-color: #fff;
@@ -95,7 +95,7 @@ select:focus {
 	position: fixed;
 	display: table;
 	background: black;
-	z-index: 999;
+	z-index: 1000;
 	text-align: center;
 }
 
@@ -110,10 +110,12 @@ select:focus {
 		var destinationPoints = {};
 		var arr = [];
 		var ground;
-		var metaMap = getMetaMap(ground, false);
+		var metaMap;
 		var metaMapFirstFloor ;
 		var metaMapDestFloor;
 		var first = true;
+		var pano;
+		var streetLayer;
 		inite();
 		
 		document.getElementById("findFullPath").addEventListener("click",function() {
@@ -126,23 +128,43 @@ select:focus {
 			var destinationPoint = t["nodeNum"];
 			var startingPointName = $("#startingPoint").find("option[value='" + $("#startingPoint").val() + "']").text()
 			
+			$("#groundNav").css("color","#343434").css("font-weight","Bold");
+			$("#firstMapNav").css("color","#a4a4a4").css("font-weight","");
+			$("#secondMapNav").css("color","#a4a4a4").css("font-weight","");
+			
+			$("#ground").show();
+			$("#firstMap").hide();
+			$("#secondMap").hide();
+			
 			ajaxFullFindPath($("#startingPoint").val(), startingPointName, buildingName, floor, destinationPoint, destination,
 					metaMap, metaMapFirstFloor, metaMapDestFloor);
 		});
 		
 		document.getElementById("groundNav").addEventListener("click",function() {
+			$("#groundNav").css("color","#343434").css("font-weight","Bold");
+			$("#firstMapNav").css("color","#a4a4a4").css("font-weight","");
+			$("#secondMapNav").css("color","#a4a4a4").css("font-weight","");
+			
 			$("#ground").show();
 			$("#firstMap").hide();
 			$("#secondMap").hide();
 		});
 		
 		document.getElementById("firstMapNav").addEventListener("click",function() {
+			$("#groundNav").css("color","#a4a4a4").css("font-weight","");
+			$("#firstMapNav").css("color","#343434").css("font-weight","Bold");
+			$("#secondMapNav").css("color","#a4a4a4").css("font-weight","");
+			
 			$("#ground").hide();
 			$("#firstMap").show();
 			$("#secondMap").hide();
 		});
 		
 		document.getElementById("secondMapNav").addEventListener("click",function() {
+			$("#groundNav").css("color","#a4a4a4").css("font-weight","");
+			$("#firstMapNav").css("color","#a4a4a4").css("font-weight","");
+			$("#secondMapNav").css("color","#343434").css("font-weight","Bold");
+			
 			$("#ground").hide();
 			$("#firstMap").hide();
 			$("#secondMap").show();
@@ -175,23 +197,72 @@ select:focus {
 				myParse(item, index);
 			});
 			
-			var h1 = $("#h").innerHeight();
-			
+			var h1 = $("#h1").innerHeight();
+			console.log(h1);
 			$("#findFullPath").css("height",h1);
+			var w1 = $("#mySelect").width() - $("#hs").width()-5;
+			$("#startingPoint").css("width",w1);
+			$("#destinationPoint").css("width",w1);
 			
 			var h2 = $(window).height() - $("#header").height();
 			$("#ground").css("height",h2);
 			$("#firstMap").css("height",h2);
 			$("#secondMap").css("height",h2);
 			
+			var h3 = $("#groundNav").height() * 3;
+			$("#ulImg").css("height",h3);
+			var w3 = $("#path").width() - $("#ulImg").width()-1;
+			$("#groundNav").css("width",w3);
+			$("#firstMapNav").css("width",w3);
+			$("#secondMapNav").css("width",w3);
+			
 			$("#ground").show();
 			$("#firstMap").hide();
 			$("#secondMap").hide();
+			
+			$("#groundNav").css("color","#343434").css("font-weight","Bold");
+			$("#firstMapNav").css("color","#a4a4a4").css("font-weight","");
+			$("#secondMapNav").css("color","#a4a4a4").css("font-weight","");
 			
 			ground = new naver.maps.Map('ground', {
 				center : new naver.maps.LatLng(37.4492592, 126.6543461),
 				zoom : 12
 			});
+			metaMap = getMetaMap(ground, false);
+			
+		   	streetLayer = new naver.maps.StreetLayer();
+		    streetLayer.setMap(null);
+		    
+		    var btn = $('#street');
+		    btn.on("click", function(e) {
+		        e.preventDefault();
+
+		        if (streetLayer.getMap()) {
+		        	naver.maps.Event.clearInstanceListeners(ground);
+		        	$("#pano").hide();
+		        	$("#ground").css("height",h2);
+		            streetLayer.setMap(null);
+		        } else {
+		        	naver.maps.Event.addListener(ground, 'click', function(e) {
+				    	$("#ground").css("height",h2/2);
+			        	$("#pano").css("height",h2/2);
+			        	$("#pano").fadeIn(1700);
+			        	pano = new naver.maps.Panorama("pano", {
+					        position: e.coord,
+					        pov: {
+					            pan: -133,
+					            tilt: 0,
+					            fov: 100
+					        }
+					    });
+				        if (streetLayer.getMap() && streetLayer.getMap()) {
+				            var latlng = e.coord;
+				            pano.setPosition(latlng);
+				        }
+				    });
+		            streetLayer.setMap(ground);
+		        }
+		    });
 			
 			$("#loadingPage").fadeOut(1000);
 		}
@@ -207,11 +278,8 @@ select:focus {
 			});
 		}
 		
-		
 		function clearDiv(){
 			if(first === false){
-				alert("empty");
-				$("#ground").empty();
 				$("#firstMap").empty()
 				$("#secondMap").empty()
 			}
@@ -230,18 +298,18 @@ select:focus {
 	<!-- select -->
 	<div style="padding:5px;height:100%"class="mint">
 		<div style="position:absolute;margin-top:5px;right:0;width:29%;height:30px;border-radius:10px;margin-left:5px;margin-right:5px;
-					background-color: #a4eedf;display: table;""
+					background-color: #a4eedf;display: table;"
 			id="findFullPath">
 				<div style="display: table-cell;vertical-align: middle;">
 					<div style="text-align:center;"><span class="glyphicon glyphicon-search w" aria-hidden="true"></span></div>
 					<div style="text-align:center;"class="bold w">SEARCH</div>
 				</div>
 			</div>
-		<div id="h">
+		<div id="h1">
 		<div style="padding:5px;width:70%;margin:5px;border-radius:10px;"class="white"id="mySelect">
-			<span style=""class="bold">출발 지점 : </span>
-			<select style=""id="startingPoint"></select>
-			<input type="txt">
+			<span id="hs" class="bold">출발 지점 : </span>
+			<select style="background-color:white;font-size:20px;"id="startingPoint"></select>
+			<!-- <input style="width:0;"> -->
 		</div>
 		<div style="padding:5px;right:0;width:70%;margin:5px;border-radius:10px;"class="white">
 			<span class="bold">도착 지점  : </span>
@@ -251,17 +319,21 @@ select:focus {
 		</div>
 		</div>
 	</div>
-	<div>
+	<div id="path">
 	<!-- path -->
-		<div id="groundNav" class="mapNav">&nbsp</div>
-		<div id="firstMapNav" class="mapNav">&nbsp</div>
-		<div id="secondMapNav" class="mapNav">&nbsp</div>
+		<img style="float:left;"src="./resources/ul.jpg"id="ulImg">
+		<div style="display:inline-block;width:60%;" id="groundNav" class="mapNav">&nbsp</div>
+		<div style="display:inline-block;width:60%;" id="firstMapNav" class="mapNav">&nbsp</div>
+		<div style="display:inline-block;width:60%;" id="secondMapNav" class="mapNav">&nbsp</div>
 	</div>
 </div>
 <!-- map -->
-<div id="ground" style="border: 1px solid black;  width: 100%;"></div>
+<div id="ground" style="border: 1px solid black;  width: 100%;">
+	<input id="street" type="button" style="position:absolute;z-index:999;padding:5px;" value="거리뷰" />
+</div>
 <div id="firstMap" style="border: 1px solid white; height: 1000px; width: 100%;" ></div>
 <div id="secondMap" style="border: 1px solid white; height: 1000px; width: 100%;"></div>
+<div id="pano"></div>
 <div id="fotter">
 <h1>FOOTER INFO</h1>
 </div>

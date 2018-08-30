@@ -82,10 +82,7 @@ function ajaxFullFindPath(startingPoint, startingPointName, buildingName, floor,
 			var parsedResult = JSON.parse(result);
 			
 			var groundNodes = JSON.parse(parsedResult['ground_Nodes'])
-			m1.map = new naver.maps.Map('ground', {
-				center : groundNodes[startingPoint],
-				zoom : 12
-			});
+			m1.map.setCenter(groundNodes[startingPoint])
 			drawPath(groundNodes ,parsedResult['ground_Paths'], "도착" ,m1)
 			
 			var msg = destination;
@@ -96,9 +93,8 @@ function ajaxFullFindPath(startingPoint, startingPointName, buildingName, floor,
 						 parsedResult['secondPaths'], 
 						 destination,
 						 m3);
-				var s = parsedResult['secondPaths'][0]
-				console.log(JSON.parse(parsedResult['secondNodes'])[s]);
-				m3.map.setCenter(JSON.parse(parsedResult['secondNodes'])[s]);
+				var centerPosition = parsedResult['secondPaths'][0]
+				m3.map.setCenter(JSON.parse(parsedResult['secondNodes'])[centerPosition]);
 			}
 			
 			
@@ -107,9 +103,8 @@ function ajaxFullFindPath(startingPoint, startingPointName, buildingName, floor,
 					 parsedResult['firstPaths'],
 					 msg,
 					 m2);
-			var s = parsedResult['firstPaths'][0]
-			console.log(JSON.parse(parsedResult['firstNodes'])[s]);
-			m2.map.setCenter(JSON.parse(parsedResult['firstNodes'])[s]);
+			var centerPosition = parsedResult['firstPaths'][0]
+			m2.map.setCenter(JSON.parse(parsedResult['firstNodes'])[centerPosition]);
 			
 			$("#groundNav").html("&nbsp");
 			$("#firstMapNav").html("&nbsp");
@@ -128,11 +123,14 @@ function ajaxFullFindPath(startingPoint, startingPointName, buildingName, floor,
 
 function drawPath(nodes, path, message, m){
 	m.nodes = nodes;
+	$.each(m.circles ,function(key, value){
+		value.setMap(null);
+	});
 	m.bestLine.setMap(null);
 	m.bestLine = new naver.maps.Polyline({
 		map : m.map,
 		path : [],
-		strokeColor : '#AA0000',
+		strokeColor : '#5ce7bd',
 		strokeWeight : 4
 	});
 	var bestPath = m.bestLine.getPath();
@@ -140,8 +138,8 @@ function drawPath(nodes, path, message, m){
 		bestPath.push(
 				new naver.maps.Point(m.nodes[path[i]].x , m.nodes[path[i]].y));
 	}
-	makeHtmlIcon("출발", m.nodes[path[0]], m);
-	makeHtmlIcon(message, m.nodes[path[path.length-1]], m);
+	m.circles[path[0]] = makeCircle(path[0], m);
+	m.circles[path[path.length-1]] = makeCircle(path[path.length-1], m);
 }
 
 function makeHtmlIcon(message, position, m){
@@ -364,9 +362,9 @@ function makeCircle(name, m){
 	    map: m.map,
 	    center: m.nodes[name],
 	    radius: 5,
-	    fillColor: '#5347AA',
+	    fillColor: '#40d0a3',
 	    fillOpacity: 1,
-	    strokeColor: '#5347AA'
+	    strokeColor: '#40d0a3'
 	});
 }
 
