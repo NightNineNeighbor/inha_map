@@ -323,7 +323,7 @@ function loadNode(nodesInfo, graphInfo, selectableInfo, stairs, elevators,  m) {
 	m.stairs = JSON.parse(stairs);
 	console.log(m.stairs);
 	$.each(m.stairs, function(index, item) {
-		if(item!="-1"){
+		if(item!="-1"&&item!=-1){
 			makeCircle(item, m);
 			m.markers[item].setIcon(getHtmlIcon("계단"+index));
 			m.markers[item].setZIndex(100);

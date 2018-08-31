@@ -174,7 +174,29 @@ select:focus {
 		
 		function inite(){
 			var selectable = '${selectable}';
+			
 			var hardCoding = [];
+			//hardCoding.push(JSON.parse('${building1_0F}'));
+			hardCoding.push(JSON.parse('${building1_1F}'));
+			hardCoding.push(JSON.parse('${building1_2F}'));
+			hardCoding.push(JSON.parse('${building1_3F}'));
+			hardCoding.push(JSON.parse('${building1_4F}'));
+			hardCoding.push(JSON.parse('${building1_5F}'));
+			var myobj={};
+			myParse2(hardCoding,1,1,myobj)
+			console.log(myobj);
+			
+			/* 
+			hardCoding = [];
+			hardCoding.push(JSON.parse('${building2_0F}'));
+			hardCoding.push(JSON.parse('${building2_1F}'));
+			hardCoding.push(JSON.parse('${building2_2F}'));
+			hardCoding.push(JSON.parse('${building2_3F}'));
+			hardCoding.push(JSON.parse('${building2_4F}'));
+			hardCoding.push(JSON.parse('${building2_5F}'));
+			hardCoding.push(JSON.parse('${building2_6F}'));
+			
+			hardCoding = [];
 			hardCoding.push(JSON.parse('${building5_0F}'));
 			hardCoding.push(JSON.parse('${building5_1F}'));
 			hardCoding.push(JSON.parse('${building5_2F}'));
@@ -182,11 +204,60 @@ select:focus {
 			hardCoding.push(JSON.parse('${building5_4F}'));
 			hardCoding.push(JSON.parse('${building5_5F}'));
 			
+			hardCoding = [];
+			//hardCoding.push(JSON.parse('${building6_0F}'));
+			//hardCoding.push(JSON.parse('${building6_1F}'));
+			hardCoding.push(JSON.parse('${building6_2F}'));
+			hardCoding.push(JSON.parse('${building6_3F}'));
+			hardCoding.push(JSON.parse('${building6_4F}'));
+			hardCoding.push(JSON.parse('${building6_5F}'));
+			hardCoding.push(JSON.parse('${building6_6F}'));
+			hardCoding.push(JSON.parse('${building6_7F}'));
+			
+			//hardCoding = [];
+			//hardCoding.push(JSON.parse('${building7_1F}'));
+			//hardCoding.push(JSON.parse('${building7_2F}'));
+			//hardCoding.push(JSON.parse('${building7_3F}'));
+			//hardCoding.push(JSON.parse('${building7_4F}'));
+			//hardCoding.push(JSON.parse('${building7_5F}'));
+			//hardCoding.push(JSON.parse('${building7_6F}'));
+			//hardCoding.push(JSON.parse('${building7_7F}'));
+			
+			hardCoding = [];
+			hardCoding.push(JSON.parse('${building10_0F}'));
+			hardCoding.push(JSON.parse('${building10_1F}'));
+			hardCoding.push(JSON.parse('${building10_2F}'));
+			hardCoding.push(JSON.parse('${building10_3F}'));
+			hardCoding.push(JSON.parse('${building10_4F}'));
+			
+			hardCoding = [];
+			hardCoding.push(JSON.parse('${building11_1F}'));
+			hardCoding.push(JSON.parse('${building11_2F}'));
+			hardCoding.push(JSON.parse('${building11_3F}'));
+			
+			hardCoding = [];
+			hardCoding.push(JSON.parse('${building12_0F}'));
+			hardCoding.push(JSON.parse('${building12_1F}'));
+			hardCoding.push(JSON.parse('${building12_2F}'));
+			hardCoding.push(JSON.parse('${building12_3F}'));
+			hardCoding.push(JSON.parse('${building12_4F}'));
+			hardCoding.push(JSON.parse('${building12_5F}'));
+			hardCoding.push(JSON.parse('${building12_6F}'));
+			hardCoding.push(JSON.parse('${building12_7F}'));
+			hardCoding.push(JSON.parse('${building12_8F}'));
+			hardCoding.push(JSON.parse('${building12_9F}'));
+			hardCoding.push(JSON.parse('${building12_10F}'));
+			hardCoding.push(JSON.parse('${building12_11F}'));
+			hardCoding.push(JSON.parse('${building12_12F}'));
+			hardCoding.push(JSON.parse('${building12_13F}'));
+			hardCoding.push(JSON.parse('${building12_14F}'));
+			hardCoding.push(JSON.parse('${building12_15F}'));
+			 */
+			/* 
 			$.each(hardCoding, function(index, item){
 				myParse(item, index);
 			});
-			
-			
+			 */
 			selectable = JSON.parse(selectable);
 			var startingPoint = document.getElementById("startingPoint");
 			$.each(selectable, function(key,value){
@@ -196,15 +267,6 @@ select:focus {
 					a.innerHTML = item;
 					startingPoint.appendChild(a);
 				});
-			});
-			
-			var hardCoding = [];
-			hardCoding.push(JSON.parse('${building2_0F}'));
-			hardCoding.push(JSON.parse('${building2_1F}'));
-			hardCoding.push(JSON.parse('${building2_2F}'));
-			
-			$.each(hardCoding, function(index, item){
-				myParse2(item, index);
 			});
 			
 			var h1 = $("#h1").innerHeight();
@@ -288,13 +350,16 @@ select:focus {
 			});
 		}
 		
-		function myParse2(arg, i){
-			$.each(arg, function(key,value){
-				$.each(value, function(index, item){
-					arr.push(item);
-					destinationPoints[item] = {buildingName:"building2",
-													"floor":i,
-													"nodeNum":key};
+		function myParse2(arg, startFloor, buildingN, o){
+			$.each(arg, function(index, item){
+				$.each(item, function(key, value){		//key ->nodeNum, value ->selectName
+					$.each(value, function(i, item2){	//index, item
+						var tmp = []
+						tmp.push(key);		//[nodeNum,floor]
+						tmp.push(startFloor+index);
+						o[buildingN] = {value : tmp};
+					});
+					
 				});
 			});
 		}
