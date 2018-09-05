@@ -12,11 +12,12 @@
 <script type="text/javascript" src="https://openapi.map.naver.com/openapi/v3/maps.js?clientId=nVEUh5PrMsL3BXJq_8Pl&submodules=panorama"></script>
 <script src="./resources/script/myfunction.js" type="text/javascript"></script>
 <style>
-@import url(//fonts.googleapis.com/earlyaccess/notosanskannada.css);
+/* //@import url(//fonts.googleapis.com/earlyaccess/notosanskannada.css); */
+@import url(http://fonts.googleapis.com/earlyaccess/notosanskr.css);
 *{
 	font-family: 'Noto Sans KR', 'Noto Sans', sans-serif;
 	font-weight: 400;
-	font-size:20px;
+	font-size:40px;
 }
 
 input{
@@ -116,17 +117,17 @@ select:focus {
 		var first = true;
 		var pano;
 		var streetLayer;
+		var myObj;
 		inite();
 		
 		document.getElementById("findFullPath").addEventListener("click",function() {
 			clearDiv();
 			
+			var buildingName = "building1";
 			var destination = $("#destinationPoint").val();
-			var t = destinationPoints[destination];
-			var floor = t["floor"];
-			var buildingName = t["buildingName"];
-			var destinationPoint = t["nodeNum"];
-			var startingPointName = $("#startingPoint").find("option[value='" + $("#startingPoint").val() + "']").text()
+			var destinationNode = myObj[buildingName][destination][0];
+			var floor = myObj[buildingName][destination][1];
+			var startingPointName = $("#startingPoint").find("option[value='" + $("#startingPoint").val() + "']").text();
 			
 			$("#groundNav").css("color","#343434").css("font-weight","Bold");
 			$("#firstMapNav").css("color","#a4a4a4").css("font-weight","");
@@ -136,7 +137,7 @@ select:focus {
 			$("#firstMap").hide();
 			$("#secondMap").hide();
 			
-			ajaxFullFindPath($("#startingPoint").val(), startingPointName, buildingName, floor, destinationPoint, destination,
+			ajaxFullFindPath($("#startingPoint").val(), startingPointName, buildingName, floor, destinationNode, destination,
 					metaMap, metaMapFirstFloor, metaMapDestFloor);
 		});
 		
@@ -182,9 +183,11 @@ select:focus {
 			hardCoding.push(JSON.parse('${building1_3F}'));
 			hardCoding.push(JSON.parse('${building1_4F}'));
 			hardCoding.push(JSON.parse('${building1_5F}'));
-			var myobj={};
-			myParse2(hardCoding,1,1,myobj)
-			console.log(myobj);
+			myObj={};
+			myObj["building1"] = myParse2(hardCoding, 1);
+			console.log(myObj);
+			
+			arr = Object.keys(myObj["building1"]);
 			
 			/* 
 			hardCoding = [];
@@ -269,12 +272,13 @@ select:focus {
 				});
 			});
 			
-			var h1 = $("#h1").innerHeight();
-			console.log(h1);
-			$("#findFullPath").css("height",h1);
 			var w1 = $("#mySelect").width() - $("#hs").width()-5;
 			$("#startingPoint").css("width",w1);
 			$("#destinationPoint").css("width",w1);
+			$("#newnew").css("width",w1);
+			var h1 = $("#h1").innerHeight();
+			console.log(h1);
+			$("#findFullPath").css("height",h1);
 			
 			var h2 = $(window).height() - $("#header").height();
 			$("#ground").css("height",h2);
@@ -287,6 +291,14 @@ select:focus {
 			$("#groundNav").css("width",w3);
 			$("#firstMapNav").css("width",w3);
 			$("#secondMapNav").css("width",w3);
+			
+			var h4 = $("#tt").height() + 5;
+			$("#tt").css("height",h4);
+			$("#tt").css("width",h4);
+			$("#tt1").css("height",h4);
+			$("#tt1").css("width",h4);
+			$("#tt2").css("height",h4);
+			$("#tt2").css("width",h4);
 			
 			$("#ground").show();
 			$("#firstMap").hide();
@@ -339,29 +351,22 @@ select:focus {
 			$("#loadingPage").fadeOut(1000);
 		}
 		
-		function myParse(arg, i){
-			$.each(arg, function(key,value){
-				$.each(value, function(index, item){
-					arr.push(item);
-					destinationPoints[item] = {buildingName:"building5",
-													"floor":i,
-													"nodeNum":key};
-				});
-			});
-		}
 		
-		function myParse2(arg, startFloor, buildingN, o){
+		function myParse2(arg, startFloor){
+			var obj = {};
+			
 			$.each(arg, function(index, item){
+				var floorNum = startFloor + index
 				$.each(item, function(key, value){		//key ->nodeNum, value ->selectName
 					$.each(value, function(i, item2){	//index, item
-						var tmp = []
-						tmp.push(key);		//[nodeNum,floor]
-						tmp.push(startFloor+index);
-						o[buildingN] = {value : tmp};
+						var t = [];
+						t.push(key);
+						t.push(floorNum);
+						obj[item2] = t;
 					});
-					
 				});
 			});
+			return obj;
 		}
 		
 		function clearDiv(){
@@ -378,6 +383,16 @@ select:focus {
 <div id="loadingPage">
 	<div id="loadingMessage">인하지도</div>
 </div>
+<div style="width:70%;padding:7px;margin:0 auto;border:thin solid black">
+	<div class="mint w "id="tt" style="display:inline-block;margin:0;text-align:center;border-radius:50%;">1</div>
+	<div style="display:inline-block">&nbsp하이테크에서 후문으로</div>
+	<hr  style="width : 97%;border:thin solid grey">
+	<div class="mint w "id="tt1" style="display:inline-block;margin:0;text-align:center;border-radius:50%;">1</div>
+	<div style="display:inline-block">&nbsp하이테크에서 후문으로</div>
+	<hr  style="width : 97%;border:thin solid grey">
+	<div class=""id="tt2" style="display:inline-block;margin:0;text-align:center;border-radius:50%;">3</div>
+	<div style="display:inline-block">&nbsp하이테크에서 후문으로</div>
+</div>
 <div id="header">
 	<!-- title -->
 	<div class="bold mint w" style="text-align: center;" >INHAJIDO</div>
@@ -393,21 +408,28 @@ select:focus {
 			</div>
 		<div id="h1">
 		<div style="padding:5px;width:70%;margin:5px;border-radius:10px;"class="white"id="mySelect">
-			<span id="hs" class="bold">출발 지점 : </span>
+			<span id="hs" class="bold">출발지 : </span>
 			<select style="background-color:white;font-size:20px;"id="startingPoint"></select>
 			<!-- <input style="width:0;"> -->
 		</div>
 		<div style="padding:5px;right:0;width:70%;margin:5px;border-radius:10px;"class="white">
-			<span class="bold">도착 지점  : </span>
+			<span class="bold">도착지  : </span>
 			<div class="autocomplete">
 			<input id="destinationPoint" type = "text">
+			</div>
+		</div>
+		<div style="padding:5px;right:0;width:70%;margin:5px;border-radius:10px;"class="white">
+			<span class="bold">뉴뉴지  : </span>
+			<div class="autocomplete">
+			<input id="newnew" type = "text">
 			</div>
 		</div>
 		</div>
 	</div>
 	<div id="path">
 	<!-- path -->
-		<img style="float:left;"src="./resources/ul.jpg"id="ulImg">
+		<!-- <img style="float:left;"src="./resources/ul.jpg"id="ulImg"> -->
+		<div style=" border-radius:50%;background-color:black;"></div>
 		<div style="display:inline-block;width:60%;" id="groundNav" class="mapNav">&nbsp</div>
 		<div style="display:inline-block;width:60%;" id="firstMapNav" class="mapNav">&nbsp</div>
 		<div style="display:inline-block;width:60%;" id="secondMapNav" class="mapNav">&nbsp</div>

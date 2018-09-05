@@ -26,8 +26,15 @@ public class MapService {
 	@Autowired
 	ObjectMapper mapper;
 	
-	public String findPath(String startingPoint, String buildingName, String floor, String destinationPoint) throws JsonParseException, JsonMappingException, IOException{
+	public String findPath(String startingPoint, String buildingName, String floor, String destinationPoint, String startingName, String destName) throws JsonParseException, JsonMappingException, IOException{
 		HashMap<String, Object> ret = new HashMap<>();
+		
+		ret.put("startingPoint", startingPoint);
+		ret.put("startingPointName", startingName);
+		ret.put("buildingName", buildingName);
+		ret.put("floor", floor);
+		ret.put("destination", destName);
+		
 		int starting = Integer.parseInt(startingPoint);
 		int destination = Integer.parseInt(destinationPoint);
 		

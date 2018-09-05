@@ -30,8 +30,14 @@ public class MapController {
 	@Autowired
 	ObjectMapper mapper;
 	
+	@PostMapping("/")
+	public String map(String startingPoint, String buildingName, String floor, String destinationPoint, String destName,String startingName, Model model ) throws JsonParseException, JsonMappingException, IOException {
+		model.addAttribute("result", service.findPath(startingPoint, buildingName, floor, destinationPoint,startingName ,destName));
+		return "result";
+	}
+	
 	@GetMapping("/")
-	public String map(Model model){
+	public String welcome(Model model){
 		//1 : 본관
 		//2	: 2, 4
 		//3 : 60주년 (x)
@@ -44,14 +50,31 @@ public class MapController {
 		//12: 하이테크
 		model.addAttribute("selectable",dao.getSelectable("ground_1F").getSelectableNodes());
 		
-		//model.addAttribute("building1_0F",dao.getSelectable("building1_0F").getSelectableNodes());
+		return "welcome";
+	}
+	
+	@GetMapping("/hardCode")
+	public String hardCode(Model model){
+		//1 : 본관
+		//2	: 2, 4
+		//3 : 60주년 (x)
+		//5	: 5
+		//6	: 6, 9
+		//7	: 학생회관
+		//8	: 정석
+		//10: 서호관
+		//11: 나빌레관
+		//12: 하이테크
+		model.addAttribute("selectable",dao.getSelectable("ground_1F").getSelectableNodes());
+		
+		model.addAttribute("building1_0F",dao.getSelectable("building1_0F").getSelectableNodes());
 		model.addAttribute("building1_1F",dao.getSelectable("building1_1F").getSelectableNodes());
 		model.addAttribute("building1_2F",dao.getSelectable("building1_2F").getSelectableNodes());
 		model.addAttribute("building1_3F",dao.getSelectable("building1_3F").getSelectableNodes());
 		model.addAttribute("building1_4F",dao.getSelectable("building1_4F").getSelectableNodes());
 		model.addAttribute("building1_5F",dao.getSelectable("building1_5F").getSelectableNodes());
 		
-		/*
+		
 		model.addAttribute("building2_0F",dao.getSelectable("building2_0F").getSelectableNodes());
 		model.addAttribute("building2_1F",dao.getSelectable("building2_1F").getSelectableNodes());
 		model.addAttribute("building2_2F",dao.getSelectable("building2_2F").getSelectableNodes());
@@ -67,8 +90,7 @@ public class MapController {
 		model.addAttribute("building5_4F",dao.getSelectable("building5_4F").getSelectableNodes());
 		model.addAttribute("building5_5F",dao.getSelectable("building5_5F").getSelectableNodes());
 		
-		//model.addAttribute("building6_0F",dao.getSelectable("building6_0F").getSelectableNodes());
-		//model.addAttribute("building6_1F",dao.getSelectable("building6_1F").getSelectableNodes());
+		model.addAttribute("building6_1F",dao.getSelectable("building6_1F").getSelectableNodes());
 		model.addAttribute("building6_2F",dao.getSelectable("building6_2F").getSelectableNodes());
 		model.addAttribute("building6_3F",dao.getSelectable("building6_3F").getSelectableNodes());
 		model.addAttribute("building6_4F",dao.getSelectable("building6_4F").getSelectableNodes());
@@ -76,15 +98,13 @@ public class MapController {
 		model.addAttribute("building6_6F",dao.getSelectable("building6_6F").getSelectableNodes());
 		model.addAttribute("building6_7F",dao.getSelectable("building6_7F").getSelectableNodes());
 		
-		//model.addAttribute("building7_1F",dao.getSelectable("building7_1F").getSelectableNodes());
-		//model.addAttribute("building7_2F",dao.getSelectable("building7_2F").getSelectableNodes());
-		//model.addAttribute("building7_3F",dao.getSelectable("building7_3F").getSelectableNodes());
-		//model.addAttribute("building7_4F",dao.getSelectable("building7_4F").getSelectableNodes());
-		//model.addAttribute("building7_5F",dao.getSelectable("building7_5F").getSelectableNodes());
-		//model.addAttribute("building7_6F",dao.getSelectable("building7_6F").getSelectableNodes());
-		//model.addAttribute("building7_7F",dao.getSelectable("building7_7F").getSelectableNodes());
+		model.addAttribute("building7_1F",dao.getSelectable("building7_1F").getSelectableNodes());
+		model.addAttribute("building7_2F",dao.getSelectable("building7_2F").getSelectableNodes());
+		model.addAttribute("building7_3F",dao.getSelectable("building7_3F").getSelectableNodes());
+		model.addAttribute("building7_4F",dao.getSelectable("building7_4F").getSelectableNodes());
+		model.addAttribute("building7_5F",dao.getSelectable("building7_5F").getSelectableNodes());
 		
-		//model.addAttribute("building10_0F",dao.getSelectable("building10_0F").getSelectableNodes());
+		model.addAttribute("building10_0F",dao.getSelectable("building10_0F").getSelectableNodes());
 		model.addAttribute("building10_1F",dao.getSelectable("building10_1F").getSelectableNodes());
 		model.addAttribute("building10_2F",dao.getSelectable("building10_2F").getSelectableNodes());
 		model.addAttribute("building10_3F",dao.getSelectable("building10_3F").getSelectableNodes());
@@ -110,8 +130,8 @@ public class MapController {
 		model.addAttribute("building12_13F",dao.getSelectable("building12_13F").getSelectableNodes());
 		model.addAttribute("building12_14F",dao.getSelectable("building12_14F").getSelectableNodes());
 		model.addAttribute("building12_15F",dao.getSelectable("building12_15F").getSelectableNodes());
-		*/
-		return "map";
+		
+		return "hardCode";
 	}
 	
 	@GetMapping("/mapUpload")
@@ -122,7 +142,7 @@ public class MapController {
 	@RequestMapping(value = "/findpath", method = RequestMethod.POST)
 	public ResponseEntity<String> findpath(String startingPoint, String buildingName, String floor, String destinationPoint)
 			throws JsonParseException, JsonMappingException, IOException {
-		return new ResponseEntity<String>(service.findPath(startingPoint, buildingName, floor, destinationPoint) , HttpStatus.OK);
+		return new ResponseEntity<String>(service.findPath(startingPoint, buildingName, floor, destinationPoint, "","") , HttpStatus.OK);
 	}
 	
 	@PostMapping("/saveMapInfo")

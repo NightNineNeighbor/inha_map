@@ -130,8 +130,8 @@ function drawPath(nodes, path, message, m){
 	m.bestLine = new naver.maps.Polyline({
 		map : m.map,
 		path : [],
-		strokeColor : '#5ce7bd',
-		strokeWeight : 4
+		strokeColor : '#d083a7',
+		strokeWeight : 9
 	});
 	var bestPath = m.bestLine.getPath();
 	for (var i = 0; i < path.length; i++) {
@@ -361,10 +361,10 @@ function makeCircle(name, m){
 	return new naver.maps.Circle({
 	    map: m.map,
 	    center: m.nodes[name],
-	    radius: 5,
-	    fillColor: '#40d0a3',
+	    radius: 10,
+	    fillColor: '#cf4e82',
 	    fillOpacity: 1,
-	    strokeColor: '#40d0a3'
+	    strokeColor: '#cf4e82'
 	});
 }
 
